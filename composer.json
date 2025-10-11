@@ -1,0 +1,27 @@
+{
+  "name": "achyutn/laravel-seo",
+  "description": "Manage SEO using Laravel SEO.",
+  "type": "library",
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "keywords": [
+	"laravel",
+	"SEO",
+	"search"
+  ],
+  "autoload": {
+	"psr-4": {
+	  "Achyutn\\LaravelSEO\\": "src/"
+	}
+  },
+  "authors": [
+	{
+	  "name": "achyutkneupane",
+	  "email": "achyutkneupane@gmail.com",
+	  "homepage": "https://achyut.com.np",
+	  "role": "Maintainer"
+	}
+  ],
+  "require": {}
+}
