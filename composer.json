@@ -23,5 +23,19 @@
 	  "role": "Maintainer"
 	}
   ],
-  "require": {}
+  "require-dev": {
+    "larastan/larastan": "^3.7",
+    "laravel/pint": "^1.25",
+    "phpstan/phpstan": "^2.1",
+    "rector/rector": "^2.2",
+    "pestphp/pest": "^4.1",
+    "pestphp/pest-plugin-laravel": "^4.0",
+    "pestphp/pest-plugin-livewire": "^4.0"
+  },
+  "config": {
+	"sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
 }
