@@ -31,9 +31,9 @@
         "laravel/pint": "^1.25",
         "phpstan/phpstan": "^2.1",
         "rector/rector": "^2.2",
-        "pestphp/pest": "^4.1",
-        "pestphp/pest-plugin-laravel": "^4.0",
-        "pestphp/pest-plugin-livewire": "^4.0"
+        "pestphp/pest": "^3",
+        "pestphp/pest-plugin-laravel": "^3",
+        "pestphp/pest-plugin-livewire": "^3"
     },
     "scripts": {
         "lint": [
