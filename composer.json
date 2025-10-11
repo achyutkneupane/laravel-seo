@@ -1,44 +1,61 @@
 {
-  "name": "achyutn/laravel-seo",
-  "description": "Manage SEO using Laravel SEO.",
-  "type": "library",
-  "license": "MIT",
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "keywords": [
-	"laravel",
-	"SEO",
-	"search"
-  ],
-  "autoload": {
-	"psr-4": {
-	  "AchyutN\\LaravelSEO\\": "src/"
-	}
-  },
-  "authors": [
-	{
-	  "name": "achyutkneupane",
-	  "email": "achyutkneupane@gmail.com",
-	  "homepage": "https://achyut.com.np",
-	  "role": "Maintainer"
-	}
-  ],
-  "require": {
-	"php": ">=8.0"
-  },
-  "require-dev": {
-    "larastan/larastan": "^3.7",
-    "laravel/pint": "^1.25",
-    "phpstan/phpstan": "^2.1",
-    "rector/rector": "^2.2",
-    "pestphp/pest": "^4.1",
-    "pestphp/pest-plugin-laravel": "^4.0",
-    "pestphp/pest-plugin-livewire": "^4.0"
-  },
-  "config": {
-	"sort-packages": true,
-    "allow-plugins": {
-      "pestphp/pest-plugin": true
+    "name": "achyutn/laravel-seo",
+    "description": "Manage SEO using Laravel SEO.",
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "keywords": [
+        "laravel",
+        "SEO",
+        "search"
+    ],
+    "autoload": {
+        "psr-4": {
+            "AchyutN\\LaravelSEO\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "achyutkneupane",
+            "email": "achyutkneupane@gmail.com",
+            "homepage": "https://achyut.com.np",
+            "role": "Maintainer"
+        }
+    ],
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.7",
+        "laravel/pint": "^1.25",
+        "phpstan/phpstan": "^2.1",
+        "rector/rector": "^2.2",
+        "pestphp/pest": "^4.1",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "pestphp/pest-plugin-livewire": "^4.0"
+    },
+    "scripts": {
+        "lint": [
+            "rector",
+            "pint",
+            "phpstan"
+        ],
+        "test:type-coverage": "pest",
+        "test:lint": [
+            "pint --test"
+        ],
+        "test:unit": "# pest --parallel --coverage --min=90",
+        "test": [
+            "@test:lint",
+            "@test:type-coverage",
+            "@test:unit"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
-  }
 }
