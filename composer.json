@@ -20,6 +20,13 @@
             "AchyutN\\LaravelSEO\\Tests\\": "tests/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AchyutN\\LaravelSEO\\SEOProvider"
+            ]
+        }
+    },
     "authors": [
         {
             "name": "achyutkneupane",
