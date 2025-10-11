@@ -23,6 +23,9 @@
 	  "role": "Maintainer"
 	}
   ],
+  "require": {
+	"php": ">=8.0"
+  },
   "require-dev": {
     "larastan/larastan": "^3.7",
     "laravel/pint": "^1.25",
