@@ -17,15 +17,15 @@ use Illuminate\Support\Carbon;
  * @property string $urlColumn
  * @property string $publishedColumn
  *
- * @method string|null titleValue
- * @method string|null descriptionValue
- * @method string|null categoryValue
- * @method string|null imageValue
- * @method string|null authorValue
- * @method string|null publisherValue
- * @method array|null tagsValue
- * @method string|null urlValue
- * @method Carbon|null publishedValue
+ * @method string|null titleValue()
+ * @method string|null descriptionValue()
+ * @method string|null categoryValue()
+ * @method string|null imageValue()
+ * @method string|null authorValue()
+ * @method string|null publisherValue()
+ * @method array<int, string>|null tagsValue()
+ * @method string|null urlValue()
+ * @method Carbon|null publishedValue()
  */
 trait HasColumns
 {

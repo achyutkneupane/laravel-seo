@@ -91,15 +91,11 @@ trait InteractsWithSEO
                         ],
                     ],
                 ])
-                ->addArticle(function (ArticleSchema $articleSchema) use ($title, $description, $url, $publishedAt): ArticleSchema {
-                    return $articleSchema->markup(function (Collection $markup) use ($title, $description, $url, $publishedAt): Collection {
-                        return $markup
-                            ->put('headline', $title)
-                            ->put('description', $description)
-                            ->put('url', $url)
-                            ->put('datePublished', $publishedAt);
-                    });
-                }),
+                ->addArticle(fn (ArticleSchema $articleSchema): ArticleSchema => $articleSchema->markup(fn (Collection $markup): Collection => $markup
+                    ->put('headline', $title)
+                    ->put('description', $description)
+                    ->put('url', $url)
+                    ->put('datePublished', $publishedAt))),
             type: 'article',
             robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),
             openGraphTitle: $seo->og_title ?? $title
