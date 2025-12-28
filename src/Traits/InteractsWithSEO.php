@@ -4,29 +4,29 @@ declare(strict_types=1);
 
 namespace LaravelSEO\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use LaravelSEO\Models\SEO;
 
 trait InteractsWithSEO
 {
-    public static function bootInteractsWithSEO(): void
+    public static function boot(): void
     {
-        static::created(function (self $model): self {
-            $authUser = auth()->check() ? auth()->user() : null;
-            $defaultName = config('app.name', 'SEO Writer');
-            $userName = $authUser ? $authUser->name : $defaultName;
+        parent::boot();
 
+        static::created(function (Model $model): Model {
             SEO::query()
                 ->updateOrCreate([
-                    'seoable_id' => $model->id,
+                    'seoable_id' => $model->getKey(),
                     'seoable_type' => $model::class,
                 ], [
-                    'meta_title' => $model->title ?? $model->name,
-                    'og_title' => $model->title ?? $model->name,
-                    'meta_description' => $model->description ?? null,
-                    'og_description' => $model->description ?? null,
-                    'author' => $userName,
-                    'publisher' => $defaultName,
+                    'meta_title' => $model->getTitleValue(),
+                    'og_title' => $model->getTitleValue(),
+                    'meta_description' => $model->getDescriptionValue(),
+                    'og_description' => $model->getDescriptionValue(),
+                    'meta_keywords' => $model->getTagsValue(),
+                    'author' => $model->getAuthorValue(),
+                    'publisher' => $model->getPublisherValue(),
                     'robots' => ['index', 'follow'],
                 ]);
 
