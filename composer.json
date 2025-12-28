@@ -1,6 +1,6 @@
 {
     "name": "achyutn/laravel-seo",
-    "description": "Manage SEO using Laravel SEO.",
+    "description": "Manage SEO using in Laravel.",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "dev",
@@ -8,22 +8,23 @@
     "keywords": [
         "laravel",
         "SEO",
-        "search"
+        "search",
+        "sitemap"
     ],
     "autoload": {
         "psr-4": {
-            "AchyutN\\LaravelSEO\\": "src/"
+            "LaravelSEO\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "AchyutN\\LaravelSEO\\Tests\\": "tests/"
+            "LaravelSEO\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "AchyutN\\LaravelSEO\\SEOProvider"
+                "LaravelSEO\\SEOProvider"
             ]
         }
     },
@@ -36,7 +37,8 @@
         }
     ],
     "require": {
-        "php": ">=8.0"
+        "php": ">=8.0",
+        "ralphjsmit/laravel-seo": "^1.7"
     },
     "require-dev": {
         "larastan/larastan": "^3.8",
