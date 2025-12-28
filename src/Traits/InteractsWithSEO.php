@@ -9,6 +9,18 @@ use LaravelSEO\Models\SEO;
 
 trait InteractsWithSEO
 {
+    protected string $titleColumn = 'title';
+
+    protected function titleColumn(): string
+    {
+        return $this->titleColumn;
+    }
+
+    protected function getTitleValue(): ?string
+    {
+        return data_get($this, $this->titleColumn());
+    }
+
     public static function bootInteractsWithSEO(): void
     {
         static::created(function (self $model): self {
@@ -19,7 +31,7 @@ trait InteractsWithSEO
             SEO::query()
                 ->updateOrCreate([
                     'seoable_id' => $model->id,
-                    'seoable_type' => get_class($model),
+                    'seoable_type' => $model::class,
                 ], [
                     'meta_title' => $model->title ?? $model->name,
                     'og_title' => $model->title ?? $model->name,
