@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace AchyutN\LaravelSEO\Tests;
+namespace LaravelSEO\Tests;
 
-use AllowDynamicProperties;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
-#[AllowDynamicProperties]
 abstract class TestCase extends BaseTestCase
 {
     use LazilyRefreshDatabase;
@@ -35,6 +34,17 @@ abstract class TestCase extends BaseTestCase
 
     protected function setUpDatabase(): void
     {
-        //
+        app('db')
+            ->connection()
+            ->getSchemaBuilder()
+            ->create('blogs', function (Blueprint $blueprint): void {
+                $blueprint->id();
+                $blueprint->string('title');
+                $blueprint->text('description');
+                $blueprint->string('image')->nullable();
+                $blueprint->json('tags')->nullable();
+                $blueprint->timestamp('published_at');
+                $blueprint->timestamps();
+            });
     }
 }
