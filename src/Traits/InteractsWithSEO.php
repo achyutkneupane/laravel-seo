@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LaravelSEO\Traits;
 
-use App\Settings\SiteSettings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Collection;
@@ -57,8 +56,8 @@ trait InteractsWithSEO
         $category = $this->getCategoryValue() ?? 'Blog';
         $tags = $seo->meta_keywords ?? $this->getTagsValue() ?? [];
         $author = $seo->author ?? $this->getAuthorValue() ?? 'Unknown Author';
-        $publisher = $seo->publisher ?? $this->getPublisherValue() ?? 'Unknown Publisher';
-        $publishedAt = $this->getPublishedValue()->toAtomString();
+        $publisher = $seo->publisher ?? $this->getPublisherValue() ?? config('app.name');
+        $publishedAt = $this->getPublishedValue();
         $image = $seo->og_image ? '/storage/'.$seo->og_image : '/storage/'.$this->getImageValue();
 
         return new SEOData(
@@ -67,6 +66,7 @@ trait InteractsWithSEO
             author: $author,
             image: $image,
             url: $url,
+            published_time: $publishedAt,
             section: $category,
             tags: $tags,
             schema: SchemaCollection::make()
