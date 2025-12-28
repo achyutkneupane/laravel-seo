@@ -9,8 +9,6 @@ use LaravelSEO\Models\SEO;
 
 trait InteractsWithSEO
 {
-    protected string $titleColumn = 'title';
-
     public static function bootInteractsWithSEO(): void
     {
         static::created(function (self $model): self {
@@ -42,15 +40,5 @@ trait InteractsWithSEO
     public function seo(): MorphOne
     {
         return $this->morphOne(SEO::class, 'model');
-    }
-
-    protected function titleColumn(): string
-    {
-        return $this->titleColumn;
-    }
-
-    protected function getTitleValue(): ?string
-    {
-        return data_get($this, $this->titleColumn());
     }
 }
