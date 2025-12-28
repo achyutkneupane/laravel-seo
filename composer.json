@@ -39,14 +39,14 @@
         "php": ">=8.0"
     },
     "require-dev": {
-        "larastan/larastan": "^3.7",
-        "laravel/pint": "^1.25",
-        "orchestra/testbench": "^10.6",
-        "pestphp/pest": "^3",
-        "pestphp/pest-plugin-laravel": "^3",
+        "larastan/larastan": "^3.8",
+        "laravel/pint": "^1.26",
+        "orchestra/testbench": "^10.8",
+        "pestphp/pest": "^3.8",
+        "pestphp/pest-plugin-laravel": "^3.2",
         "pestphp/pest-plugin-livewire": "^3",
         "phpstan/phpstan": "^2.1",
-        "rector/rector": "^2.2"
+        "rector/rector": "^2.3"
     },
     "scripts": {
         "lint": [
