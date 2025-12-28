@@ -10,10 +10,8 @@ use LaravelSEO\Models\SEO;
 
 trait InteractsWithSEO
 {
-    public static function boot(): void
+    public static function bootInteractsWithSEO(): void
     {
-        parent::boot();
-
         static::created(function (Model $model): Model {
             SEO::query()
                 ->updateOrCreate([
