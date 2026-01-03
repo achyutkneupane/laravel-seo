@@ -1,6 +1,6 @@
 {
     "name": "achyutn/laravel-seo",
-    "description": "Manage SEO using in Laravel.",
+    "description": "An opinionated Laravel SEO package to manage SEO easily.",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "dev",
