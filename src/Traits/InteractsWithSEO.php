@@ -63,11 +63,26 @@ trait InteractsWithSEO
         $authorUrl = $this->getAuthorUrlValue() ?? null;
 
         $publisher = $seo->publisher ?? $this->getPublisherValue() ?? config('app.name');
+        $publisherUrl = $this->getPublisherUrlValue() ?? null;
+
         $publishedAt = $this->getPublishedAtValue();
 
         $seoImage = $seo->og_image ? '/storage/' . $seo->og_image : null;
         $fallbackImage = $this->getImageValue() ? '/storage/' . $this->getImageValue() : null;
         $image = $seoImage ?? $fallbackImage;
+
+        $authorArray = [
+            [
+                '@type' => 'Organization',
+                'name' => $publisher,
+                'url' => $publisherUrl,
+            ],
+            [
+                '@type' => 'Person',
+                'name' => $author,
+                'url' => $authorUrl,
+            ],
+        ];
 
         return new SEOData(
             title: $title,
@@ -89,22 +104,14 @@ trait InteractsWithSEO
                     'articleSection' => $category,
                     'datePublished' => $publishedAt,
                     'inLanguage' => 'en',
-                    'author' => [
-                        [
-                            '@type' => 'Organization',
-                            'name' => $publisher,
-                        ],
-                        [
-                            '@type' => 'Person',
-                            'name' => $author,
-                            'url' => $authorUrl,
-                        ],
-                    ],
+                    'author' => $authorArray,
                 ])
                 ->addArticle(fn (ArticleSchema $articleSchema): ArticleSchema => $articleSchema->markup(fn (Collection $markup): Collection => $markup
                     ->put('headline', $title)
                     ->put('description', $description)
                     ->put('url', $url)
+                    ->put('thumbnailUrl', $image)
+                    ->put('author', $authorArray)
                     ->put('datePublished', $publishedAt))),
             type: 'article',
             robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),

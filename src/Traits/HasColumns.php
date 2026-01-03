@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property string $authorColumn
  * @property string $authorUrlColumn
  * @property string $publisherColumn
+ * @property string $publisherUrlColumn
  * @property string $tagsColumn
  * @property string $urlColumn
  * @property string $publishedAtColumn
@@ -25,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @method string|null authorValue()
  * @method string|null authorUrlValue()
  * @method string|null publisherValue()
+ * @method string|null publisherUrlValue()
  * @method array<int, string>|null tagsValue()
  * @method string|null urlValue()
  * @method Carbon|null publishedAtValue()
@@ -92,6 +94,15 @@ trait HasColumns
         }
 
         return data_get($this, $this->publisherColumn());
+    }
+
+    public function getPublisherUrlValue(): ?string
+    {
+        if (method_exists($this, 'publisherUrlValue') && $this->publisherUrlValue() !== null) {
+            return $this->publisherUrlValue();
+        }
+
+        return data_get($this, $this->publisherUrlColumn());
     }
 
     public function getTagsValue(): ?array
@@ -168,6 +179,13 @@ trait HasColumns
         return property_exists($this, 'publisherColumn')
             ? $this->publisherColumn
             : 'publisher';
+    }
+
+    protected function publisherUrlColumn(): string
+    {
+        return property_exists($this, 'publisherUrlColumn')
+            ? $this->publisherUrlColumn
+            : 'publisher_url';
     }
 
     protected function tagsColumn(): string
