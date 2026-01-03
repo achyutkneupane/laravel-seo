@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AchyutN\LaravelSEO;
+namespace LaravelSEO;
 
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
