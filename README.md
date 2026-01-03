@@ -1,1 +1,142 @@
 # Laravel SEO
+
+An opinionated Laravel SEO package to manage SEO on Eloquent models.
+This package makes use of an un-opinionated package
+[ralphjsmit/laravel-seo](https://github.com/ralphjsmit/laravel-seo) and adds
+a pattern of auto-generating SEO metadata for Eloquent models with customization.
+
+## Installation
+
+You can install the package via composer:
+
+```bash
+composer require achyutn/laravel-seo
+```
+
+You must publish package config and migration stubs to your application using the following command:
+
+```bash
+php artisan vendor:publish --tag="laravel-seo"
+```
+
+This generates a `config/seo.php` configuration file and a migration file
+for the `seo` table in your database.
+
+> `ralphjsmit/laravel-seo` will also be installed as a dependency. Publishing the configuration
+> and migration of that package will break the functionality of this package.  
+> If you want full customization, I recommend you to check out that package directly.
+
+Next, run the migration to create the `seo` table:
+
+```bash
+php artisan migrate
+```
+
+## Usage
+
+To use the package, simply add the [`AchyutN\LaravelSEO\Traits\InteractsWithSEO`](src/Traits/InteractsWithSEO.php) trait to any Eloquent model
+you want to manage SEO for.
+
+```php
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    // ...
+}
+```
+
+### Customization
+
+This package resolves SEO data using a simple priority order:
+
+1. A custom `*Value()` method, if defined on the model
+2. A custom `*$Column` property, if defined on the model
+3. A default column name
+
+You can customize each field independently.
+
+#### Resolution Priority
+
+For each field:
+
+1. `*Value()` method
+2. `*$Column` property
+3. Default column name
+
+Methods always take precedence over properties.
+
+#### Supported Override Methods
+
+Define these **on your model** when the value is computed or derived.
+
+| Method | Return Type | When to use |
+|------|------------|------------|
+| `titleValue()` | `?string` | Computed or dynamic title |
+| `descriptionValue()` | `?string` | Generated description |
+| `categoryValue()` | `?string` | Derived category |
+| `imageValue()` | `?string` | Media or CDN URL |
+| `authorValue()` | `?string` | Relation-based author |
+| `authorUrlValue()` | `?string` | Author profile link |
+| `publisherValue()` | `?string` | Brand or company name |
+| `publisherUrlValue()` | `?string` | Publisher homepage |
+| `tagsValue()` | `array<string>` | Normalized tags |
+| `urlValue()` | `?string` | Custom canonical URL |
+| `publishedAtValue()` | `?Carbon` | Computed publish date |
+
+##### Example
+
+```php
+class Post extends Model
+{
+    use HasColumns;
+
+    protected function titleValue(): ?string
+    {
+        return "{$this->title} | My Blog";
+    }
+
+    protected function tagsValue(): ?array
+    {
+        return $this->tags?->pluck('name')->all();
+    }
+}
+```
+
+#### Supported Properties
+
+Define these **on your Eloquent model** to change which column is used.
+
+| Property              | Default         | Purpose            |
+|-----------------------|-----------------|--------------------|
+| `$titleColumn`        | `title`         | Page title         |
+| `$descriptionColumn`  | `description`   | Meta description   |
+| `$categoryColumn`     | `category`      | Content category   |
+| `$imageColumn`        | `image`         | Open Graph image   |
+| `$authorColumn`       | `author`        | Author name        |
+| `$authorUrlColumn`    | `author_url`    | Author profile URL |
+| `$publisherColumn`    | `publisher`     | Publisher name     |
+| `$publisherUrlColumn` | `publisher_url` | Publisher URL      |
+| `$tagsColumn`         | `tags`          | Tags or keywords   |
+| `$urlColumn`          | `url`           | Canonical URL      |
+| `$publishedAtColumn`  | `published_at`  | Publish date       |
+
+##### Example
+
+```php
+class Post extends Model
+{
+    use HasColumns;
+
+    protected string $titleColumn = 'seo_title';
+    protected string $imageColumn = 'og_image';
+}
+```
+
+#### Notes
+
+- All overrides are optional
+- Do not define both a property and a method unless intentional
+- IDEs and static analyzers understand all extension points via PHPDoc
