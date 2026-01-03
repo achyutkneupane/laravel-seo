@@ -1,5 +1,10 @@
 # Laravel SEO
 
+![Packagist Version](https://img.shields.io/packagist/v/achyutn/laravel-seo?label=Latest%20Version)
+![Packagist Downloads](https://img.shields.io/packagist/dt/achyutn/laravel-seo?label=Packagist%20Downloads)
+![Packagist Stars](https://img.shields.io/packagist/stars/achyutn/laravel-seo?label=Stars)
+[![Lint & Test PR](https://github.com/achyutkneupane/laravel-seo/actions/workflows/prlint.yml/badge.svg)](https://github.com/achyutkneupane/laravel-seo/actions/workflows/prlint.yml)
+
 An opinionated Laravel SEO package to manage SEO on Eloquent models.
 This package makes use of an un-opinionated package
 [ralphjsmit/laravel-seo](https://github.com/ralphjsmit/laravel-seo) and adds
