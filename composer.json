@@ -1,6 +1,6 @@
 {
     "name": "achyutn/laravel-seo",
-    "description": "Manage SEO using Laravel SEO.",
+    "description": "An opinionated Laravel SEO package to manage SEO easily.",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "dev",
@@ -8,7 +8,8 @@
     "keywords": [
         "laravel",
         "SEO",
-        "search"
+        "search",
+        "sitemap"
     ],
     "autoload": {
         "psr-4": {
@@ -36,7 +37,8 @@
         }
     ],
     "require": {
-        "php": ">=8.0"
+        "php": ">=8.0",
+        "ralphjsmit/laravel-seo": "^1.7"
     },
     "require-dev": {
         "larastan/larastan": "^3.8",
