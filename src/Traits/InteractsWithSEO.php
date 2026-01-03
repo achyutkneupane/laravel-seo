@@ -60,8 +60,8 @@ trait InteractsWithSEO
         $tags = $seo->meta_keywords ?? $this->getTagsValue() ?? [];
         $author = $seo->author ?? $this->getAuthorValue() ?? 'Unknown Author';
         $publisher = $seo->publisher ?? $this->getPublisherValue() ?? config('app.name');
-        $publishedAt = $this->getPublishedValue();
-        $image = $seo->og_image ? '/storage/'.$seo->og_image : '/storage/'.$this->getImageValue();
+        $publishedAt = $this->getPublishedAtValue();
+        $image = $seo->og_image ? '/storage/' . $seo->og_image : ($this->getImageValue() ? '/storage/' . $this->getImageValue() : null);
 
         return new SEOData(
             title: $title,
