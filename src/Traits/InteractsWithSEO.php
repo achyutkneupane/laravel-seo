@@ -61,7 +61,10 @@ trait InteractsWithSEO
         $author = $seo->author ?? $this->getAuthorValue() ?? 'Unknown Author';
         $publisher = $seo->publisher ?? $this->getPublisherValue() ?? config('app.name');
         $publishedAt = $this->getPublishedAtValue();
-        $image = $seo->og_image ? '/storage/' . $seo->og_image : ($this->getImageValue() ? '/storage/' . $this->getImageValue() : null);
+
+        $seoImage = $seo->og_image ? '/storage/' . $seo->og_image : null;
+        $fallbackImage = $this->getImageValue() ? '/storage/' . $this->getImageValue() : null;
+        $image = $seoImage ?? $fallbackImage;
 
         return new SEOData(
             title: $title,
