@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property string $publisherColumn
  * @property string $tagsColumn
  * @property string $urlColumn
- * @property string $publishedColumn
+ * @property string $publishedAtColumn
  *
  * @method string|null titleValue()
  * @method string|null descriptionValue()
@@ -25,7 +25,7 @@ use Illuminate\Support\Carbon;
  * @method string|null publisherValue()
  * @method array<int, string>|null tagsValue()
  * @method string|null urlValue()
- * @method Carbon|null publishedValue()
+ * @method Carbon|null publishedAtValue()
  */
 trait HasColumns
 {
@@ -101,13 +101,13 @@ trait HasColumns
         return data_get($this, $this->urlColumn());
     }
 
-    public function getPublishedValue(): ?Carbon
+    public function getPublishedAtValue(): ?Carbon
     {
-        if (method_exists($this, 'publishedValue') && $this->publishedValue() !== null) {
-            return $this->publishedValue();
+        if (method_exists($this, 'publishedAtValue') && $this->publishedAtValue() !== null) {
+            return $this->publishedAtValue();
         }
 
-        return data_get($this, $this->publishedColumn());
+        return data_get($this, $this->publishedAtColumn());
     }
 
     protected function titleColumn(): string
@@ -166,10 +166,10 @@ trait HasColumns
             : 'url';
     }
 
-    protected function publishedColumn(): string
+    protected function publishedAtColumn(): string
     {
-        return property_exists($this, 'publishedColumn')
-            ? $this->publishedColumn
+        return property_exists($this, 'publishedAtColumn')
+            ? $this->publishedAtColumn
             : 'published_at';
     }
 }
