@@ -18,19 +18,22 @@ trait InteractsWithSEO
 
     public static function bootInteractsWithSEO(): void
     {
+        /**
+         * @param Model|HasColumns $model
+         */
         static::created(function (Model $model): Model {
             SEO::query()
                 ->updateOrCreate([
-                    'seoable_id' => $model->getKey(),
-                    'seoable_type' => $model::class,
+                    'model_id' => $model->getKey(),
+                    'model_type' => $model::class,
                 ], [
-                    'meta_title' => $this->getTitleValue(),
-                    'og_title' => $this->getTitleValue(),
-                    'meta_description' => $this->getDescriptionValue(),
-                    'og_description' => $this->getDescriptionValue(),
-                    'meta_keywords' => $this->getTagsValue(),
-                    'author' => $this->getAuthorValue(),
-                    'publisher' => $this->getPublisherValue(),
+                    'meta_title' => $model->getTitleValue(),
+                    'og_title' => $model->getTitleValue(),
+                    'meta_description' => $model->getDescriptionValue(),
+                    'og_description' => $model->getDescriptionValue(),
+                    'meta_keywords' => $model->getTagsValue(),
+                    'author' => $model->getAuthorValue(),
+                    'publisher' => $model->getPublisherValue(),
                     'robots' => ['index', 'follow'],
                 ]);
 
