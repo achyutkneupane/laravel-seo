@@ -72,19 +72,19 @@ Methods always take precedence over properties.
 
 Define these **on your model** when the value is computed or derived.
 
-| Method | Return Type | When to use |
-|------|------------|------------|
-| `titleValue()` | `?string` | Computed or dynamic title |
-| `descriptionValue()` | `?string` | Generated description |
-| `categoryValue()` | `?string` | Derived category |
-| `imageValue()` | `?string` | Media or CDN URL |
-| `authorValue()` | `?string` | Relation-based author |
-| `authorUrlValue()` | `?string` | Author profile link |
-| `publisherValue()` | `?string` | Brand or company name |
-| `publisherUrlValue()` | `?string` | Publisher homepage |
-| `tagsValue()` | `array<string>` | Normalized tags |
-| `urlValue()` | `?string` | Custom canonical URL |
-| `publishedAtValue()` | `?Carbon` | Computed publish date |
+| Method                | Return Type     | When to use               |
+|-----------------------|-----------------|---------------------------|
+| `titleValue()`        | `?string`       | Computed or dynamic title |
+| `descriptionValue()`  | `?string`       | Generated description     |
+| `categoryValue()`     | `?string`       | Derived category          |
+| `imageValue()`        | `?string`       | Media or CDN URL          |
+| `authorValue()`       | `?string`       | Relation-based author     |
+| `authorUrlValue()`    | `?string`       | Author profile link       |
+| `publisherValue()`    | `?string`       | Brand or company name     |
+| `publisherUrlValue()` | `?string`       | Publisher homepage        |
+| `tagsValue()`         | `array<string>` | Normalized tags           |
+| `urlValue()`          | `?string`       | Custom canonical URL      |
+| `publishedAtValue()`  | `?Carbon`       | Computed publish date     |
 
 ##### Example
 
@@ -140,3 +140,47 @@ class Post extends Model
 - All overrides are optional
 - Do not define both a property and a method unless intentional
 - IDEs and static analyzers understand all extension points via PHPDoc
+
+### Breadcrumbs
+
+You can also manage breadcrumbs by defining a `breadcrumbs()` method on your model that returns an array of [`Breadcrumb`](src/Data/Breadcrumb.php) items.
+
+```php
+use AchyutN\LaravelSEO\Data\Breadcrumb;
+
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    public function breadcrumbs(): array
+    {
+        return [
+            new Breadcrumb(label: 'Home', url: route('home')),
+            new Breadcrumb(label: 'Blog', url: route('blog.index')),
+            new Breadcrumb(label: $this->title, url: route('blog.show', $this)),
+        ];
+    }
+}
+```
+
+### Rendering SEO Tags
+
+To render the SEO tags in your views, you can use the following Blade directive:
+
+```blade
+{!! seo($model) !!}
+```
+
+Replace `$model` with the instance of your Eloquent model.
+
+## License
+
+This package is open-sourced software licensed under the [MIT license](LICENSE.md).
+
+## Contributing
+
+Contributions are welcome! Please create a pull request or open an issue if you find any bugs or have feature requests.
+
+## Support
+
+If you find this package useful, please consider starring the repository on GitHub to show your support.
