@@ -7,8 +7,10 @@ namespace LaravelSEO\Traits;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Collection;
+use LaravelSEO\Data\Breadcrumb;
 use LaravelSEO\Models\SEO;
 use RalphJSmit\Laravel\SEO\Schema\ArticleSchema;
+use RalphJSmit\Laravel\SEO\Schema\BreadcrumbListSchema;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
 
@@ -49,6 +51,16 @@ trait InteractsWithSEO
         return $this->morphOne(SEO::class, 'model');
     }
 
+    /**
+     * Add breadcrumbs to the model for schema generation
+     *
+     * @return array<int, Breadcrumb>
+     */
+    public function breadCrumbs(): array
+    {
+        return [];
+    }
+
     public function getDynamicSEOData(): SEOData
     {
         $seo = $this->seo;
@@ -84,6 +96,34 @@ trait InteractsWithSEO
             ],
         ];
 
+        $schema = SchemaCollection::make()
+            ->add(fn (): array => [
+                '@context' => 'https://schema.org',
+                '@type' => 'BlogPosting',
+                'headline' => $title,
+                'description' => $description,
+                'url' => $url,
+                'thumbnailUrl' => $image,
+                'articleSection' => $category,
+                'datePublished' => $publishedAt,
+                'inLanguage' => 'en',
+                'author' => $authorArray,
+            ])
+            ->addArticle(fn (ArticleSchema $articleSchema): ArticleSchema => $articleSchema->markup(fn (Collection $markup): Collection => $markup
+                ->put('headline', $title)
+                ->put('description', $description)
+                ->put('url', $url)
+                ->put('thumbnailUrl', $image)
+                ->put('author', $authorArray)
+                ->put('datePublished', $publishedAt)));
+
+        if (count($this->breadCrumbs()) > 0) {
+            $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs) {
+                $breadcrumbs->breadcrumbs = collect($this->breadCrumbs())
+                    ->mapWithKeys(fn (Breadcrumb $breadcrumb) => $breadcrumb->toArray());
+            });
+        }
+
         return new SEOData(
             title: $title,
             description: $description,
@@ -93,26 +133,7 @@ trait InteractsWithSEO
             published_time: $publishedAt,
             section: $category,
             tags: $tags,
-            schema: SchemaCollection::make()
-                ->add(fn (): array => [
-                    '@context' => 'https://schema.org',
-                    '@type' => 'BlogPosting',
-                    'headline' => $title,
-                    'description' => $description,
-                    'url' => $url,
-                    'thumbnailUrl' => $image,
-                    'articleSection' => $category,
-                    'datePublished' => $publishedAt,
-                    'inLanguage' => 'en',
-                    'author' => $authorArray,
-                ])
-                ->addArticle(fn (ArticleSchema $articleSchema): ArticleSchema => $articleSchema->markup(fn (Collection $markup): Collection => $markup
-                    ->put('headline', $title)
-                    ->put('description', $description)
-                    ->put('url', $url)
-                    ->put('thumbnailUrl', $image)
-                    ->put('author', $authorArray)
-                    ->put('datePublished', $publishedAt))),
+            schema: $schema,
             type: 'article',
             robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),
             openGraphTitle: $seo->og_title ?? $title

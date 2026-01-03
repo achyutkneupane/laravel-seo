@@ -21,5 +21,13 @@ final class Breadcrumb
     {
         return $this->url;
     }
+
+    /** @return array<string, string> */
+    public function toArray(): array
+    {
+        return [
+            $this->label => $this->url,
+        ];
+    }
 }
 
