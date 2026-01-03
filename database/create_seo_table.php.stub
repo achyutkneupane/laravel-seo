@@ -34,7 +34,6 @@ return new class extends Migration
 
             $blueprint->string('author')->nullable();
             $blueprint->string('publisher')->nullable();
-            $blueprint->json('schema')->nullable();
             $blueprint->timestamps();
         });
     }
