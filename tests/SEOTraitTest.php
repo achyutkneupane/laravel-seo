@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LaravelSEO\Tests;
+namespace AchyutN\LaravelSEO\Tests;
 
-use LaravelSEO\Tests\Model\Blog;
+use AchyutN\LaravelSEO\Tests\Model\Blog;
 
 beforeEach(function () {
     $this->data = [

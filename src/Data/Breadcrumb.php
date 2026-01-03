@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LaravelSEO\Data;
+namespace AchyutN\LaravelSEO\Data;
 
 final class Breadcrumb
 {

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace LaravelSEO\Traits;
+namespace AchyutN\LaravelSEO\Traits;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Collection;
-use LaravelSEO\Data\Breadcrumb;
-use LaravelSEO\Models\SEO;
+use AchyutN\LaravelSEO\Data\Breadcrumb;
+use AchyutN\LaravelSEO\Models\SEO;
 use RalphJSmit\Laravel\SEO\Schema\ArticleSchema;
 use RalphJSmit\Laravel\SEO\Schema\BreadcrumbListSchema;
 use RalphJSmit\Laravel\SEO\SchemaCollection;

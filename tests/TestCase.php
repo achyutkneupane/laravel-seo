@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LaravelSEO\Tests;
+namespace AchyutN\LaravelSEO\Tests;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;

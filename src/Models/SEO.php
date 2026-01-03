@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LaravelSEO\Models;
+namespace AchyutN\LaravelSEO\Models;
 
 use Eloquent;
 use Illuminate\Database\Eloquent\Builder;

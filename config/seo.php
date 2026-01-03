@@ -1,6 +1,6 @@
 <?php
 
-use LaravelSEO\Models\SEO;
+use AchyutN\LaravelSEO\Models\SEO;
 
 return [
     'model' => SEO::class,

@@ -13,18 +13,18 @@
     ],
     "autoload": {
         "psr-4": {
-            "LaravelSEO\\": "src/"
+            "AchyutN\\LaravelSEO\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "LaravelSEO\\Tests\\": "tests/"
+            "AchyutN\\LaravelSEO\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "LaravelSEO\\SEOProvider"
+                "AchyutN\\LaravelSEO\\SEOProvider"
             ]
         }
     },

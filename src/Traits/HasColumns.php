@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LaravelSEO\Traits;
+namespace AchyutN\LaravelSEO\Traits;
 
 use Illuminate\Support\Carbon;
 

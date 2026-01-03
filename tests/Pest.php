@@ -13,7 +13,7 @@ declare(strict_types=1);
 |
 */
 
-pest()->extend(LaravelSEO\Tests\TestCase::class);
+pest()->extend(AchyutN\LaravelSEO\Tests\TestCase::class);
 
 /*
 |--------------------------------------------------------------------------

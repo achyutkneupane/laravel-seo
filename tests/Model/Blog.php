@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace LaravelSEO\Tests\Model;
+namespace AchyutN\LaravelSEO\Tests\Model;
 
 use Illuminate\Database\Eloquent\Model;
-use LaravelSEO\Traits\InteractsWithSEO;
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
 
 final class Blog extends Model
 {
