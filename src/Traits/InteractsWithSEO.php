@@ -58,7 +58,10 @@ trait InteractsWithSEO
         $url = $seo->canonical ?? $this->getUrlValue() ?? null;
         $category = $this->getCategoryValue() ?? 'Blog';
         $tags = $seo->meta_keywords ?? $this->getTagsValue() ?? [];
+
         $author = $seo->author ?? $this->getAuthorValue() ?? 'Unknown Author';
+        $authorUrl = $this->getAuthorUrlValue() ?? null;
+
         $publisher = $seo->publisher ?? $this->getPublisherValue() ?? config('app.name');
         $publishedAt = $this->getPublishedAtValue();
 
@@ -94,6 +97,7 @@ trait InteractsWithSEO
                         [
                             '@type' => 'Person',
                             'name' => $author,
+                            'url' => $authorUrl,
                         ],
                     ],
                 ])
