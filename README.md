@@ -6,9 +6,7 @@
 [![Lint & Test PR](https://github.com/achyutkneupane/laravel-seo/actions/workflows/prlint.yml/badge.svg)](https://github.com/achyutkneupane/laravel-seo/actions/workflows/prlint.yml)
 
 An opinionated Laravel SEO package to manage SEO on Eloquent models.
-This package makes use of an un-opinionated package
-[ralphjsmit/laravel-seo](https://github.com/ralphjsmit/laravel-seo) and adds
-a pattern of auto-generating SEO metadata for Eloquent models with customization.
+This package makes use of an un-opinionated package [ralphjsmit/laravel-seo](https://github.com/ralphjsmit/laravel-seo) and adds a pattern of auto-generating SEO metadata for Eloquent models with customization.
 
 This package lets you generate SEO metadata directly from Eloquent models without
 manually wiring SEO data in controllers or views.
