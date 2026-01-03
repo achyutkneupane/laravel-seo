@@ -5,6 +5,9 @@ This package makes use of an un-opinionated package
 [ralphjsmit/laravel-seo](https://github.com/ralphjsmit/laravel-seo) and adds
 a pattern of auto-generating SEO metadata for Eloquent models with customization.
 
+This package lets you generate SEO metadata directly from Eloquent models without
+manually wiring SEO data in controllers or views.
+
 ## Installation
 
 You can install the package via composer:
@@ -49,6 +52,8 @@ class Post extends Model
 }
 ```
 
+This will automatically use the default columns (title, description, etc).
+
 ### Customization
 
 This package resolves SEO data using a simple priority order:
@@ -92,7 +97,7 @@ Define these **on your model** when the value is computed or derived.
 ```php
 class Post extends Model
 {
-    use HasColumns;
+    use InteractsWithSEO;
 
     protected function titleValue(): ?string
     {
@@ -129,7 +134,7 @@ Define these **on your Eloquent model** to change which column is used.
 ```php
 class Post extends Model
 {
-    use HasColumns;
+    use InteractsWithSEO;
 
     protected string $titleColumn = 'seo_title';
     protected string $imageColumn = 'og_image';
@@ -173,6 +178,33 @@ To render the SEO tags in your views, you can use the following Blade directive:
 ```
 
 Replace `$model` with the instance of your Eloquent model.
+
+### Full Example
+
+```php
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use AchyutN\LaravelSEO\Data\Breadcrumb;
+
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    protected string $titleColumn = 'seo_title';
+
+    protected function descriptionValue(): ?string
+    {
+        return substr($this->content, 0, 150);
+    }
+
+    public function breadcrumbs(): array
+    {
+        return [
+            new Breadcrumb(label: 'Home', url: route('home')),
+            new Breadcrumb(label: $this->title, url: route('blog.show', $this)),
+        ];
+    }
+}
+```
 
 ## License
 
