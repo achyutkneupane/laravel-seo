@@ -24,7 +24,8 @@ for the `seo` table in your database.
 
 > `ralphjsmit/laravel-seo` will also be installed as a dependency. Publishing the configuration
 > and migration of that package will break the functionality of this package.  
-> If you want full customization, I recommend you to check out that package directly.
+> If you want full customization, I recommend you to check out that package directly from
+> its [GitHub repository](https://github.com/ralphjsmit/laravel-seo).
 
 Next, run the migration to create the `seo` table:
 
