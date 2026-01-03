@@ -120,6 +120,7 @@ trait InteractsWithSEO
         if (count($this->breadCrumbs()) > 0) {
             $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs) {
                 $breadcrumbs->breadcrumbs = collect($this->breadCrumbs())
+                    ->filter(fn ($breadcrumb) => $breadcrumb instanceof Breadcrumb)
                     ->mapWithKeys(fn (Breadcrumb $breadcrumb) => $breadcrumb->toArray());
             });
         }
