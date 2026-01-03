@@ -9,8 +9,7 @@ final class Breadcrumb
     public function __construct(
         private string $label,
         private string $url,
-    ) {
-    }
+    ) {}
 
     public function getLabel(): string
     {
@@ -30,4 +29,3 @@ final class Breadcrumb
         ];
     }
 }
-

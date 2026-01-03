@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Tests\Model;
 
-use Illuminate\Database\Eloquent\Model;
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Illuminate\Database\Eloquent\Model;
 
 final class Blog extends Model
 {

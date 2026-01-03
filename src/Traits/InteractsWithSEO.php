@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Traits;
 
+use AchyutN\LaravelSEO\Data\Breadcrumb;
+use AchyutN\LaravelSEO\Models\SEO;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Collection;
-use AchyutN\LaravelSEO\Data\Breadcrumb;
-use AchyutN\LaravelSEO\Models\SEO;
 use RalphJSmit\Laravel\SEO\Schema\ArticleSchema;
 use RalphJSmit\Laravel\SEO\Schema\BreadcrumbListSchema;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
@@ -21,7 +21,7 @@ trait InteractsWithSEO
     public static function bootInteractsWithSEO(): void
     {
         /**
-         * @param Model|HasColumns $model
+         * @param  Model|HasColumns  $model
          */
         static::created(function (Model $model): Model {
             SEO::query()
@@ -79,8 +79,8 @@ trait InteractsWithSEO
 
         $publishedAt = $this->getPublishedAtValue();
 
-        $seoImage = $seo->og_image ? '/storage/' . $seo->og_image : null;
-        $fallbackImage = $this->getImageValue() ? '/storage/' . $this->getImageValue() : null;
+        $seoImage = $seo->og_image ? '/storage/'.$seo->og_image : null;
+        $fallbackImage = $this->getImageValue() ? '/storage/'.$this->getImageValue() : null;
         $image = $seoImage ?? $fallbackImage;
 
         $authorArray = [
@@ -118,10 +118,10 @@ trait InteractsWithSEO
                 ->put('datePublished', $publishedAt)));
 
         if (count($this->breadCrumbs()) > 0) {
-            $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs) {
+            $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
                 $breadcrumbs->breadcrumbs = collect($this->breadCrumbs())
-                    ->filter(fn ($breadcrumb) => $breadcrumb instanceof Breadcrumb)
-                    ->mapWithKeys(fn (Breadcrumb $breadcrumb) => $breadcrumb->toArray());
+                    ->filter(fn ($breadcrumb): bool => $breadcrumb instanceof Breadcrumb)
+                    ->mapWithKeys(fn (Breadcrumb $breadcrumb): array => $breadcrumb->toArray());
             });
         }
 
