@@ -4,8 +4,14 @@ namespace AchyutN\LaravelSEO\Data;
 
 use Illuminate\Support\Carbon;
 
+/**
+ * @phpstan-type AuthorArray array{"@type": string, name: string, url: string|null}
+ */
 final class ResolvedSEO
 {
+    /**
+     * @param array<int, string> $tags
+     */
     public function __construct(
         public string $title,
         public ?string $description,
@@ -20,34 +26,31 @@ final class ResolvedSEO
         public ?Carbon $publishedAt,
     ) {}
 
+    /** @return AuthorArray[] */
     public function authorArray(): array
     {
         $authorData = [
             '@type' => 'Person',
             'name' => $this->author,
+            'url' => $this->authorUrl ?? null,
         ];
-
-        if ($this->authorUrl) {
-            $authorData['url'] = $this->authorUrl;
-        }
 
         return [$authorData];
     }
 
+    /** @return AuthorArray[] */
     public function publisherArray(): array
     {
         $publisherData = [
             '@type' => 'Organization',
             'name' => $this->publisher,
+            'url' => $this->publisherUrl ?? null,
         ];
-
-        if ($this->publisherUrl) {
-            $publisherData['url'] = $this->publisherUrl;
-        }
 
         return [$publisherData];
     }
 
+    /** @return AuthorArray[] */
     public function authorAndPublisher(): array
     {
         return array_merge(
