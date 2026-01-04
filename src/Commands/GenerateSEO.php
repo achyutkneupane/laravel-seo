@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AchyutN\LaravelSEO\Commands;
 
 use AchyutN\LaravelSEO\Models\SEO;
+use AchyutN\LaravelSEO\Services\SEOService;
 use AchyutN\LaravelSEO\Services\SitemapService;
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
 use Illuminate\Console\Command;
@@ -19,7 +20,7 @@ final class GenerateSEO extends Command
     protected $description = 'Generate missing SEO entries for all models that uses InteractsWithSEO trait';
 
     public function __construct(
-        public SitemapService $sitemapService
+        public SEOService $service
     ) {
         parent::__construct();
     }
@@ -29,7 +30,7 @@ final class GenerateSEO extends Command
         /** @var bool $regenerate */
         $regenerate = $this->option('regenerate') ?? false;
 
-        $models = $this->discoverModels();
+        $models = $this->service->seoModels();
 
         if ($models === []) {
             $this->info('No models using InteractsWithSEO found.');
@@ -60,7 +61,7 @@ final class GenerateSEO extends Command
                             'tags' => $tags,
                             'author' => $author,
                             'publisher' => $publisher,
-                        ] = $this->sitemapService->getModelValues($instance);
+                        ] = $this->service->getModelValues($instance);
 
                         SEO::query()
                             ->updateOrCreate([
@@ -79,63 +80,5 @@ final class GenerateSEO extends Command
                     }
                 });
         }
-    }
-
-    /** @return array<int, class-string<Model>> */
-    protected function discoverModels(): array
-    {
-        $path = app_path('Models');
-
-        $models = [];
-
-        if (! is_dir($path)) {
-            return $models;
-        }
-
-        foreach (File::allFiles($path) as $file) {
-            $class = $this->classFromFile($file->getPathname());
-            if (! $class) {
-                continue;
-            }
-            if (! class_exists($class)) {
-                continue;
-            }
-
-            $reflection = new ReflectionClass($class);
-            if ($reflection->isAbstract()) {
-                continue;
-            }
-            if (! is_subclass_of($class, Model::class)) {
-                continue;
-            }
-
-            if (in_array(
-                InteractsWithSEO::class,
-                class_uses_recursive($class),
-                true
-            )) {
-                $models[] = $class;
-            }
-        }
-
-        return array_unique($models);
-    }
-
-    protected function classFromFile(string $path): ?string
-    {
-        $contents = file_get_contents($path);
-
-        if ($contents === false) {
-            return null;
-        }
-
-        if (
-            ! preg_match('/namespace\s+(.+?);/', $contents, $ns) ||
-            ! preg_match('/class\s+(\w+)/', $contents, $cls)
-        ) {
-            return null;
-        }
-
-        return $ns[1].'\\'.$cls[1];
     }
 }

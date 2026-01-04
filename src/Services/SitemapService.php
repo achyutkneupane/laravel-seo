@@ -12,6 +12,13 @@ use Illuminate\Support\LazyCollection;
 
 final class SitemapService
 {
+
+    public function __construct(
+        public SEOService $service
+    ) {
+        //
+    }
+
     public function toXML(): Response
     {
         /** @var LazyCollection<int, SEO> $seoModels */
@@ -35,7 +42,7 @@ final class SitemapService
                 'title' => $title,
                 'description' => $description,
                 'updatedAt' => $updatedAt,
-            ] = $this->getModelValues($model);
+            ] = $this->service->getModelValues($model);
 
             if ($url === null) {
                 continue;
@@ -80,7 +87,7 @@ final class SitemapService
             /** @phpstan-var string|null $url */
             [
                 'url' => $url
-            ] = $this->getModelValues($model);
+            ] = $this->service->getModelValues($model);
 
             if ($url !== null) {
                 $txt[] = $url;
@@ -89,38 +96,6 @@ final class SitemapService
 
         return response(implode("\n", $txt))
             ->header('Content-Type', 'text/plain; charset=UTF-8');
-    }
-
-    /** @return array{url: string|null, imageUrl: string|null, title: string|null, description: string|null, updatedAt: Carbon|null, tags: array<int, string>, author: string|null, publisher: string|null} */
-    public function getModelValues(Model $model): array
-    {
-        /** @var string|null $url */
-        $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
-        /** @var string|null $imageUrl */
-        $imageUrl = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
-        /** @var string|null $title */
-        $title = method_exists($model, 'getTitleValue') ? $model->getTitleValue() : null;
-        /** @var string|null $description */
-        $description = method_exists($model, 'getDescriptionValue') ? $model->getDescriptionValue() : null;
-        /** @var Carbon $updatedAt */
-        $updatedAt = method_exists($model, 'getModifiedAtValue') ? $model->getModifiedAtValue() : null;
-        /** @var array<int, string> $tags */
-        $tags = method_exists($model, 'getTagsValue') ? $model->getTagsValue() : [];
-        /** @var string|null $author */
-        $author = method_exists($model, 'getAuthorValue') ? $model->getAuthorValue() : null;
-        /** @var string|null $publisher */
-        $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
-
-        return [
-            'url' => $url,
-            'imageUrl' => $imageUrl,
-            'title' => $title,
-            'description' => $description,
-            'updatedAt' => $updatedAt,
-            'tags' => $tags,
-            'author' => $author,
-            'publisher' => $publisher,
-        ];
     }
 
     /** @return LazyCollection<int, SEO> */
