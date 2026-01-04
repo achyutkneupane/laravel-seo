@@ -82,6 +82,7 @@ trait InteractsWithSEO
             image: $resolvedSEO->image,
             url: $resolvedSEO->url,
             published_time: $resolvedSEO->publishedAt,
+            modified_time: $resolvedSEO->modifiedAt,
             section: $resolvedSEO->category,
             tags: $resolvedSEO->tags,
             schema: $schema,
@@ -118,8 +119,6 @@ trait InteractsWithSEO
         $publisher = $seo->publisher ?? $this->getPublisherValue() ?? config('app.name');
         $publisherUrl = $this->getPublisherUrlValue() ?? null;
 
-        $publishedAt = $this->getPublishedAtValue();
-
         $seoImage = $seo->og_image ? '/storage/'.$seo->og_image : null;
         $fallbackImage = $this->getImageValue() ? '/storage/'.$this->getImageValue() : null;
         $image = $seoImage ?? $fallbackImage;
@@ -135,7 +134,8 @@ trait InteractsWithSEO
             publisher: $publisher,
             publisherUrl: $publisherUrl,
             image: $image,
-            publishedAt: $publishedAt,
+            publishedAt: $this->getPublishedAtValue(),
+            modifiedAt: $this->getModifiedAtValue(),
             pageType: $this->getPageTypeValue(),
             brand: $this->getBrandValue(),
             price: $this->getPriceValue(),
