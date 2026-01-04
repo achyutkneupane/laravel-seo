@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace AchyutN\LaravelSEO\Services;
 
 use AchyutN\LaravelSEO\Models\SEO;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Response;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\LazyCollection;
 
 final class SitemapService
 {
-
     public function __construct(
         public SEOService $service
     ) {

@@ -6,12 +6,8 @@ namespace AchyutN\LaravelSEO\Commands;
 
 use AchyutN\LaravelSEO\Models\SEO;
 use AchyutN\LaravelSEO\Services\SEOService;
-use AchyutN\LaravelSEO\Services\SitemapService;
-use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\File;
-use ReflectionClass;
 
 final class GenerateSEO extends Command
 {
