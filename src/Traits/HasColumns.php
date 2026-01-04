@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $tagsColumn
  * @property string $urlColumn
  * @property string $publishedAtColumn
+ * @property string $modifiedAtColumn
  * @property string $pageTypeColumn
  * @property string $brandColumn
  * @property string $priceColumn
@@ -36,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @method array<int, string>|null tagsValue()
  * @method string|null urlValue()
  * @method Carbon|null publishedAtValue()
+ * @method Carbon|null modifiedAtValue()
  * @method string|null pageTypeValue()
  * @method string|null brandValue()
  * @method float|null priceValue()
@@ -142,6 +144,15 @@ trait HasColumns
         }
 
         return data_get($this, $this->publishedAtColumn());
+    }
+
+    public function getModifiedAtValue(): ?Carbon
+    {
+        if (method_exists($this, 'modifiedAtValue') && $this->modifiedAtValue() !== null) {
+            return $this->modifiedAtValue();
+        }
+
+        return data_get($this, $this->modifiedAtColumn());
     }
 
     public function getPageTypeValue(): ?string
@@ -272,7 +283,14 @@ trait HasColumns
     {
         return property_exists($this, 'publishedAtColumn')
             ? $this->publishedAtColumn
-            : 'published_at';
+            : 'created_at';
+    }
+
+    protected function modifiedAtColumn(): string
+    {
+        return property_exists($this, 'modifiedAtColumn')
+            ? $this->modifiedAtColumn
+            : 'updated_at';
     }
 
     protected function pageTypeColumn(): string

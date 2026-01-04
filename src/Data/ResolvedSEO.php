@@ -26,6 +26,7 @@ final class ResolvedSEO
         public ?string $publisherUrl,
         public ?string $image,
         public ?Carbon $publishedAt,
+        public ?Carbon $modifiedAt,
 
         public ?string $pageType,
 
