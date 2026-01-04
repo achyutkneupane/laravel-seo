@@ -8,7 +8,6 @@ use AchyutN\LaravelSEO\Models\SEO;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
 
 final class SitemapService
@@ -103,9 +102,6 @@ final class SitemapService
         return SEO::query()
             ->with('model')
             ->orderBy('model_type')
-            ->lazy()
-            ->each(function (SEO $seoModel): void {
-                $seoModel->load('model');
-            });
+            ->lazy();
     }
 }
