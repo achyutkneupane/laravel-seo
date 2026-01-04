@@ -10,7 +10,7 @@ This package makes use of an un-opinionated package [ralphjsmit/laravel-seo](htt
 
 This package lets you generate SEO metadata directly from Eloquent models without
 manually wiring SEO data in controllers or views.
-It supports multiple schema types including Blog, Product, and generic Pages.
+It supports multiple schema types including [Blog](#blog-schema), [Product](#product-schema), and generic [Page](#page-schema) schema.
 
 ## Installation
 
@@ -57,6 +57,100 @@ class Post extends Model
 ```
 
 This will automatically use the default columns (title, description, etc).
+You can also auto-generate [breadcrumbs](#breadcrumbs) and [schema markup](#schema-types) for your model by implementing the respective methods or traits.
+
+### Schema Types
+
+This package supports multiple schema types using traits:
+
+- [BlogSchema](#blog-schema) for blog posts
+- [ProductSchema](#product-schema) for products (e-commerce)
+- [PageSchema](#page-schema) for generic pages
+
+Each schema trait implements a `buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO)` method, which receives resolved SEO data from your model. To use any schema, add the corresponding trait to your model along with the interface `AchyutN\LaravelSEO\Contracts\HasMarkup`.
+
+#### Blog Schema
+
+To use the Blog schema, add the `AchyutN\LaravelSEO\Schemas\BlogSchema` trait to your model:
+
+```php
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\BlogSchema;
+
+class Post extends Model implements HasMarkup
+{
+    use InteractsWithSEO;
+    use BlogSchema;
+
+    // ...
+}
+```
+
+#### Product Schema
+
+To use the Product schema, add the `AchyutN\LaravelSEO\Schemas\ProductSchema` trait to your model:
+
+```php
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\ProductSchema;
+
+class Product extends Model implements HasMarkup
+{
+    use InteractsWithSEO;
+    use ProductSchema;
+
+    // ...
+}
+```
+
+#### Page Schema
+
+To use the Page schema, add the `AchyutN\LaravelSEO\Schemas\PageSchema` trait to your model:
+
+```php
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\PageSchema;
+
+class Page extends Model implements HasMarkup
+{
+    use InteractsWithSEO;
+    use PageSchema;
+
+    // ...
+}
+```
+
+### Breadcrumbs
+
+You can also manage breadcrumbs by defining a `breadcrumbs()` method on your model that returns an array of [`Breadcrumb`](src/Data/Breadcrumb.php) items.
+
+```php
+use AchyutN\LaravelSEO\Data\Breadcrumb;
+
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    public function breadcrumbs(): array
+    {
+        return [
+            new Breadcrumb(label: 'Home', url: route('home')),
+            new Breadcrumb(label: 'Blog', url: route('blog.index')),
+            new Breadcrumb(label: $this->title, url: route('blog.show', $this)),
+        ];
+    }
+}
+```
+
+### Rendering SEO Tags
+
+To render the SEO tags in your views, you can use the following Blade directive:
+
+```blade
+{!! seo($model) !!}
+```
+
+Replace `$model` with the instance of your Eloquent model.
 
 ### Customization
 
@@ -150,99 +244,6 @@ class Post extends Model
 - All overrides are optional
 - Do not define both a property and a method unless intentional
 - IDEs and static analyzers understand all extension points via PHPDoc
-
-### Breadcrumbs
-
-You can also manage breadcrumbs by defining a `breadcrumbs()` method on your model that returns an array of [`Breadcrumb`](src/Data/Breadcrumb.php) items.
-
-```php
-use AchyutN\LaravelSEO\Data\Breadcrumb;
-
-class Post extends Model
-{
-    use InteractsWithSEO;
-
-    public function breadcrumbs(): array
-    {
-        return [
-            new Breadcrumb(label: 'Home', url: route('home')),
-            new Breadcrumb(label: 'Blog', url: route('blog.index')),
-            new Breadcrumb(label: $this->title, url: route('blog.show', $this)),
-        ];
-    }
-}
-```
-
-### Rendering SEO Tags
-
-To render the SEO tags in your views, you can use the following Blade directive:
-
-```blade
-{!! seo($model) !!}
-```
-
-Replace `$model` with the instance of your Eloquent model.
-
-### Schema Types
-
-This package supports multiple schema types using traits:
-
-- [BlogSchema](#blog-schema) for blog posts
-- [ProductSchema](#product-schema) for products (e-commerce)
-- [PageSchema](#page-schema) for generic pages
-
-Each schema trait implements a `buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO)` method, which receives resolved SEO data from your model. To use any schema, add the corresponding trait to your model along with the interface `AchyutN\LaravelSEO\Contracts\HasMarkup`.
-
-#### Blog Schema
-
-To use the Blog schema, add the `AchyutN\LaravelSEO\Schemas\BlogSchema` trait to your model:
-
-```php
-use AchyutN\LaravelSEO\Contracts\HasMarkup;
-use AchyutN\LaravelSEO\Schemas\BlogSchema;
-
-class Post extends Model implements HasMarkup
-{
-    use InteractsWithSEO;
-    use BlogSchema;
-
-    // ...
-}
-```
-
-#### Product Schema
-
-To use the Product schema, add the `AchyutN\LaravelSEO\Schemas\ProductSchema` trait to your model:
-
-```php
-use AchyutN\LaravelSEO\Contracts\HasMarkup;
-use AchyutN\LaravelSEO\Schemas\ProductSchema;
-
-class Product extends Model implements HasMarkup
-{
-    use InteractsWithSEO;
-    use ProductSchema;
-
-    // ...
-}
-```
-
-#### Page Schema
-
-To use the Page schema, add the `AchyutN\LaravelSEO\Schemas\PageSchema` trait to your model:
-
-```php
-use AchyutN\LaravelSEO\Contracts\HasMarkup;
-use AchyutN\LaravelSEO\Schemas\PageSchema;
-
-class Page extends Model implements HasMarkup
-{
-    use InteractsWithSEO;
-    use PageSchema;
-
-    // ...
-}
-```
 
 ## License
 
