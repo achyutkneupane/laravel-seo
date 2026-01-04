@@ -19,7 +19,7 @@ trait BlogSchema
         return $schema
             ->add(fn (): array => [
                 '@context' => 'https://schema.org',
-                '@type' => 'BlogPosting',
+                '@type' => $resolvedSEO->pageType ?? $this->blogSchemaType(),
                 'headline' => $resolvedSEO->title,
                 'description' => $resolvedSEO->description,
                 'url' => $resolvedSEO->url,

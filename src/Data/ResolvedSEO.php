@@ -24,6 +24,13 @@ final class ResolvedSEO
         public ?string $publisherUrl,
         public ?string $image,
         public ?Carbon $publishedAt,
+
+        public ?string $pageType,
+
+        public ?string $price,
+        public ?string $currency,
+        public bool $isAvailable = false,
+        public ?string $sku,
     ) {}
 
     /** @return AuthorArray[] */

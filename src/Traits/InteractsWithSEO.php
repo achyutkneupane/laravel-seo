@@ -105,7 +105,12 @@ trait InteractsWithSEO
             publisher: $publisher,
             publisherUrl: $publisherUrl,
             image: $image,
-            publishedAt: $publishedAt
+            publishedAt: $publishedAt,
+            pageType: $this->pageTypeValue(),
+            price: $this->priceValue(),
+            currency: $this->currencyValue(),
+            isAvailable: $this->availabilityValue(),
+            sku: $this->skuValue(),
         );
     }
 
