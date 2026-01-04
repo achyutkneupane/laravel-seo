@@ -46,6 +46,24 @@ final class SitemapService
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     }
 
+    public function toTXT(): Response
+    {
+        $seoModels = $this->getSEOEntries();
+
+        $txt = [];
+
+        foreach ($seoModels as $seoModel) {
+            $model = $seoModel->model;
+
+            if (! $model || ! $model->getUrlValue()) continue;
+
+            $txt[] = $model->getUrlValue();
+        }
+
+        return response(implode("\n", $txt))
+            ->header('Content-Type', 'text/plain; charset=UTF-8');
+    }
+
     /** @return LazyCollection<int, SEO> */
     private function getSEOEntries(): LazyCollection
     {
