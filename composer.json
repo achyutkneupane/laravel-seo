@@ -1,6 +1,6 @@
 {
     "name": "achyutn/laravel-seo",
-    "description": "An opinionated Laravel SEO package to manage SEO easily.",
+    "description": "An opinionated Laravel package to manage SEO easily.",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "dev",
@@ -72,5 +72,23 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
-    }
+    },
+    "funding": [
+        {
+            "type": "patreon",
+            "url": "https://www.patreon.com/Achyut"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/achyutkneupane"
+        },
+        {
+            "type": "other",
+            "url": "https://buymeacoffee.com/achyutn"
+        },
+        {
+            "type": "other",
+            "url": "https://buymemomo.com/achyut"
+        }
+    ]
 }

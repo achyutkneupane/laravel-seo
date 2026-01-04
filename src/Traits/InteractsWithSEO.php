@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Traits;
 
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
 use AchyutN\LaravelSEO\Data\Breadcrumb;
+use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use AchyutN\LaravelSEO\Models\SEO;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Support\Collection;
-use RalphJSmit\Laravel\SEO\Schema\ArticleSchema;
 use RalphJSmit\Laravel\SEO\Schema\BreadcrumbListSchema;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
@@ -56,12 +56,53 @@ trait InteractsWithSEO
      *
      * @return array<int, Breadcrumb>
      */
-    public function breadCrumbs(): array
+    public function breadcrumbs(): array
     {
         return [];
     }
 
     public function getDynamicSEOData(): SEOData
+    {
+        $resolvedSEO = $this->resolveSEO();
+
+        $schema = $this->buildDynamicSchema($resolvedSEO);
+
+        if (count($this->breadcrumbs()) > 0) {
+            $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
+                $breadcrumbs->breadcrumbs = collect($this->breadcrumbs())
+                    ->filter(fn ($breadcrumb): bool => $breadcrumb instanceof Breadcrumb)
+                    ->mapWithKeys(fn (Breadcrumb $breadcrumb): array => $breadcrumb->toArray());
+            });
+        }
+
+        return new SEOData(
+            title: $resolvedSEO->title,
+            description: $resolvedSEO->description,
+            author: $resolvedSEO->author,
+            image: $resolvedSEO->image,
+            url: $resolvedSEO->url,
+            published_time: $resolvedSEO->publishedAt,
+            section: $resolvedSEO->category,
+            tags: $resolvedSEO->tags,
+            schema: $schema,
+            type: 'article',
+            robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),
+            openGraphTitle: $seo->og_title ?? $resolvedSEO->title,
+        );
+    }
+
+    protected function buildDynamicSchema(ResolvedSEO $resolvedSEO): SchemaCollection
+    {
+        $schema = SchemaCollection::make();
+
+        if ($this instanceof HasMarkup) {
+            return $this->buildSchema($schema, $resolvedSEO);
+        }
+
+        return $schema;
+    }
+
+    protected function resolveSEO(): ResolvedSEO
     {
         $seo = $this->seo;
 
@@ -83,61 +124,24 @@ trait InteractsWithSEO
         $fallbackImage = $this->getImageValue() ? '/storage/'.$this->getImageValue() : null;
         $image = $seoImage ?? $fallbackImage;
 
-        $authorArray = [
-            [
-                '@type' => 'Organization',
-                'name' => $publisher,
-                'url' => $publisherUrl,
-            ],
-            [
-                '@type' => 'Person',
-                'name' => $author,
-                'url' => $authorUrl,
-            ],
-        ];
-
-        $schema = SchemaCollection::make()
-            ->add(fn (): array => [
-                '@context' => 'https://schema.org',
-                '@type' => 'BlogPosting',
-                'headline' => $title,
-                'description' => $description,
-                'url' => $url,
-                'thumbnailUrl' => $image,
-                'articleSection' => $category,
-                'datePublished' => $publishedAt,
-                'inLanguage' => 'en',
-                'author' => $authorArray,
-            ])
-            ->addArticle(fn (ArticleSchema $articleSchema): ArticleSchema => $articleSchema->markup(fn (Collection $markup): Collection => $markup
-                ->put('headline', $title)
-                ->put('description', $description)
-                ->put('url', $url)
-                ->put('thumbnailUrl', $image)
-                ->put('author', $authorArray)
-                ->put('datePublished', $publishedAt)));
-
-        if (count($this->breadCrumbs()) > 0) {
-            $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
-                $breadcrumbs->breadcrumbs = collect($this->breadCrumbs())
-                    ->filter(fn ($breadcrumb): bool => $breadcrumb instanceof Breadcrumb)
-                    ->mapWithKeys(fn (Breadcrumb $breadcrumb): array => $breadcrumb->toArray());
-            });
-        }
-
-        return new SEOData(
+        return new ResolvedSEO(
             title: $title,
             description: $description,
-            author: $author,
-            image: $image,
             url: $url,
-            published_time: $publishedAt,
-            section: $category,
+            category: $category,
             tags: $tags,
-            schema: $schema,
-            type: 'article',
-            robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),
-            openGraphTitle: $seo->og_title ?? $title
+            author: $author,
+            authorUrl: $authorUrl,
+            publisher: $publisher,
+            publisherUrl: $publisherUrl,
+            image: $image,
+            publishedAt: $publishedAt,
+            pageType: $this->getPageTypeValue(),
+            brand: $this->getBrandValue(),
+            price: $this->getPriceValue(),
+            currency: $this->getCurrencyValue(),
+            isAvailable: $this->getAvailabilityValue(),
+            sku: $this->getSkuValue(),
         );
     }
 }
