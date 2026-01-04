@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Traits;
 
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
 use AchyutN\LaravelSEO\Data\Breadcrumb;
+use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use AchyutN\LaravelSEO\Models\SEO;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -61,7 +63,18 @@ trait InteractsWithSEO
         return [];
     }
 
-    public function getDynamicSEOData(): SEOData
+    protected function buildDynamicSchema(): SchemaCollection
+    {
+        $schema = SchemaCollection::make();
+
+        if ($this instanceof HasMarkup) {
+            return $this->buildSchema($schema);
+        }
+
+        return $schema;
+    }
+
+    protected function resolveSEO(): ResolvedSEO
     {
         $seo = $this->seo;
 
@@ -83,39 +96,46 @@ trait InteractsWithSEO
         $fallbackImage = $this->getImageValue() ? '/storage/'.$this->getImageValue() : null;
         $image = $seoImage ?? $fallbackImage;
 
-        $authorArray = [
-            [
-                '@type' => 'Organization',
-                'name' => $publisher,
-                'url' => $publisherUrl,
-            ],
-            [
-                '@type' => 'Person',
-                'name' => $author,
-                'url' => $authorUrl,
-            ],
-        ];
+        return new ResolvedSEO(
+            title: $title,
+            description: $description,
+            url: $url,
+            category: $category,
+            tags: $tags,
+            author: $author,
+            authorUrl: $authorUrl,
+            publisher: $publisher,
+            publisherUrl: $publisherUrl,
+            image: $image,
+            publishedAt: $publishedAt
+        );
+    }
+
+    public function getDynamicSEOData(): SEOData
+    {
+        $resolvedSEO = $this->resolveSEO();
 
         $schema = SchemaCollection::make()
             ->add(fn (): array => [
                 '@context' => 'https://schema.org',
                 '@type' => 'BlogPosting',
-                'headline' => $title,
-                'description' => $description,
-                'url' => $url,
-                'thumbnailUrl' => $image,
-                'articleSection' => $category,
-                'datePublished' => $publishedAt,
+                'headline' => $resolvedSEO->title,
+                'description' => $resolvedSEO->description,
+                'url' => $resolvedSEO->url,
+                'thumbnailUrl' => $resolvedSEO->image,
+                'articleSection' => $resolvedSEO->category,
+                'datePublished' => $resolvedSEO->publishedAt,
                 'inLanguage' => 'en',
-                'author' => $authorArray,
+                'author' => $resolvedSEO->authorAndPublisher(),
             ])
             ->addArticle(fn (ArticleSchema $articleSchema): ArticleSchema => $articleSchema->markup(fn (Collection $markup): Collection => $markup
-                ->put('headline', $title)
-                ->put('description', $description)
-                ->put('url', $url)
-                ->put('thumbnailUrl', $image)
-                ->put('author', $authorArray)
-                ->put('datePublished', $publishedAt)));
+                ->put('headline', $resolvedSEO->title)
+                ->put('description', $resolvedSEO->description)
+                ->put('url', $resolvedSEO->url)
+                ->put('thumbnailUrl', $resolvedSEO->image)
+                ->put('author', $resolvedSEO->authorAndPublisher())
+                ->put('datePublished', $resolvedSEO->publishedAt)
+            ));
 
         if (count($this->breadcrumbs()) > 0) {
             $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
@@ -126,18 +146,18 @@ trait InteractsWithSEO
         }
 
         return new SEOData(
-            title: $title,
-            description: $description,
-            author: $author,
-            image: $image,
-            url: $url,
-            published_time: $publishedAt,
-            section: $category,
-            tags: $tags,
+            title: $resolvedSEO->title,
+            description: $resolvedSEO->description,
+            author: $resolvedSEO->author,
+            image: $resolvedSEO->image,
+            url: $resolvedSEO->url,
+            published_time: $resolvedSEO->publishedAt,
+            section: $resolvedSEO->category,
+            tags: $resolvedSEO->tags,
             schema: $schema,
             type: 'article',
             robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),
-            openGraphTitle: $seo->og_title ?? $title
+            openGraphTitle: $seo->og_title ?? $resolvedSEO->title,
         );
     }
 }
