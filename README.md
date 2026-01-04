@@ -10,6 +10,7 @@ This package makes use of an un-opinionated package [ralphjsmit/laravel-seo](htt
 
 This package lets you generate SEO metadata directly from Eloquent models without
 manually wiring SEO data in controllers or views.
+It supports multiple schema types including Blog, Product, and generic Pages.
 
 ## Installation
 
@@ -62,7 +63,7 @@ This will automatically use the default columns (title, description, etc).
 This package resolves SEO data using a simple priority order:
 
 1. A custom `*Value()` method, if defined on the model
-2. A custom `*$Column` property, if defined on the model
+2. A custom `$*Column` property, if defined on the model
 3. A default column name
 
 You can customize each field independently.
@@ -72,7 +73,7 @@ You can customize each field independently.
 For each field:
 
 1. `*Value()` method
-2. `*$Column` property
+2. `$*Column` property
 3. Default column name
 
 Methods always take precedence over properties.
@@ -182,30 +183,64 @@ To render the SEO tags in your views, you can use the following Blade directive:
 
 Replace `$model` with the instance of your Eloquent model.
 
-### Full Example
+### Schema Types
+
+This package supports multiple schema types using traits:
+
+- [BlogSchema](#blog-schema) for blog posts
+- [ProductSchema](#product-schema) for products (e-commerce)
+- [PageSchema](#page-schema) for generic pages
+
+Each schema trait implements a `buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO)` method, which receives resolved SEO data from your model. To use any schema, add the corresponding trait to your model along with the interface `AchyutN\LaravelSEO\Contracts\HasMarkup`.
+
+#### Blog Schema
+
+To use the Blog schema, add the `AchyutN\LaravelSEO\Schemas\BlogSchema` trait to your model:
 
 ```php
-use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
-use AchyutN\LaravelSEO\Data\Breadcrumb;
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\BlogSchema;
 
-class Post extends Model
+class Post extends Model implements HasMarkup
 {
     use InteractsWithSEO;
+    use BlogSchema;
 
-    protected string $titleColumn = 'seo_title';
+    // ...
+}
+```
 
-    protected function descriptionValue(): ?string
-    {
-        return substr($this->content, 0, 150);
-    }
+#### Product Schema
 
-    public function breadcrumbs(): array
-    {
-        return [
-            new Breadcrumb(label: 'Home', url: route('home')),
-            new Breadcrumb(label: $this->title, url: route('blog.show', $this)),
-        ];
-    }
+To use the Product schema, add the `AchyutN\LaravelSEO\Schemas\ProductSchema` trait to your model:
+
+```php
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\ProductSchema;
+
+class Product extends Model implements HasMarkup
+{
+    use InteractsWithSEO;
+    use ProductSchema;
+
+    // ...
+}
+```
+
+#### Page Schema
+
+To use the Page schema, add the `AchyutN\LaravelSEO\Schemas\PageSchema` trait to your model:
+
+```php
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\PageSchema;
+
+class Page extends Model implements HasMarkup
+{
+    use InteractsWithSEO;
+    use PageSchema;
+
+    // ...
 }
 ```
 
