@@ -45,7 +45,7 @@ final class ResolvedSEO
             $publisherData['url'] = $this->publisherUrl;
         }
 
-        return $publisherData;
+        return [$publisherData];
     }
 
     public function authorAndPublisher(): array
