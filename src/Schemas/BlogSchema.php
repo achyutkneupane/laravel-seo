@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AchyutN\LaravelSEO\Schemas;
 
 use AchyutN\LaravelSEO\Data\ResolvedSEO;
@@ -9,11 +11,6 @@ use RalphJSmit\Laravel\SEO\SchemaCollection;
 
 trait BlogSchema
 {
-    protected function blogSchemaType(): string
-    {
-        return 'BlogPosting';
-    }
-
     public function buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO): SchemaCollection
     {
         return $schema
@@ -37,5 +34,10 @@ trait BlogSchema
                 ->put('author', $resolvedSEO->authorAndPublisher())
                 ->put('datePublished', $resolvedSEO->publishedAt)
             ));
+    }
+
+    protected function blogSchemaType(): string
+    {
+        return 'BlogPosting';
     }
 }

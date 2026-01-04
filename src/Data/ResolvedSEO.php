@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AchyutN\LaravelSEO\Data;
 
 use Illuminate\Support\Carbon;
@@ -10,7 +12,7 @@ use Illuminate\Support\Carbon;
 final class ResolvedSEO
 {
     /**
-     * @param array<int, string> $tags
+     * @param  array<int, string>  $tags
      */
     public function __construct(
         public string $title,
@@ -31,7 +33,7 @@ final class ResolvedSEO
         public ?string $price,
         public ?string $currency,
         public bool $isAvailable = false,
-        public ?string $sku,
+        public ?string $sku = null,
     ) {}
 
     /** @return AuthorArray[] */
@@ -52,6 +54,7 @@ final class ResolvedSEO
         return [
             '@type' => 'Brand',
             'name' => $this->brand,
+            'url' => null,
         ];
     }
 

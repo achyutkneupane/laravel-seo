@@ -61,6 +61,36 @@ trait InteractsWithSEO
         return [];
     }
 
+    public function getDynamicSEOData(): SEOData
+    {
+        $resolvedSEO = $this->resolveSEO();
+
+        $schema = $this->buildDynamicSchema($resolvedSEO);
+
+        if (count($this->breadcrumbs()) > 0) {
+            $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
+                $breadcrumbs->breadcrumbs = collect($this->breadcrumbs())
+                    ->filter(fn ($breadcrumb): bool => $breadcrumb instanceof Breadcrumb)
+                    ->mapWithKeys(fn (Breadcrumb $breadcrumb): array => $breadcrumb->toArray());
+            });
+        }
+
+        return new SEOData(
+            title: $resolvedSEO->title,
+            description: $resolvedSEO->description,
+            author: $resolvedSEO->author,
+            image: $resolvedSEO->image,
+            url: $resolvedSEO->url,
+            published_time: $resolvedSEO->publishedAt,
+            section: $resolvedSEO->category,
+            tags: $resolvedSEO->tags,
+            schema: $schema,
+            type: 'article',
+            robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),
+            openGraphTitle: $seo->og_title ?? $resolvedSEO->title,
+        );
+    }
+
     protected function buildDynamicSchema(ResolvedSEO $resolvedSEO): SchemaCollection
     {
         $schema = SchemaCollection::make();
@@ -112,36 +142,6 @@ trait InteractsWithSEO
             currency: $this->getCurrencyValue(),
             isAvailable: $this->getAvailabilityValue(),
             sku: $this->getSkuValue(),
-        );
-    }
-
-    public function getDynamicSEOData(): SEOData
-    {
-        $resolvedSEO = $this->resolveSEO();
-
-        $schema = $this->buildDynamicSchema($resolvedSEO);
-
-        if (count($this->breadcrumbs()) > 0) {
-            $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
-                $breadcrumbs->breadcrumbs = collect($this->breadcrumbs())
-                    ->filter(fn ($breadcrumb): bool => $breadcrumb instanceof Breadcrumb)
-                    ->mapWithKeys(fn (Breadcrumb $breadcrumb): array => $breadcrumb->toArray());
-            });
-        }
-
-        return new SEOData(
-            title: $resolvedSEO->title,
-            description: $resolvedSEO->description,
-            author: $resolvedSEO->author,
-            image: $resolvedSEO->image,
-            url: $resolvedSEO->url,
-            published_time: $resolvedSEO->publishedAt,
-            section: $resolvedSEO->category,
-            tags: $resolvedSEO->tags,
-            schema: $schema,
-            type: 'article',
-            robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),
-            openGraphTitle: $seo->og_title ?? $resolvedSEO->title,
         );
     }
 }

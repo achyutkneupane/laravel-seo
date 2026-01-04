@@ -18,9 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $tagsColumn
  * @property string $urlColumn
  * @property string $publishedAtColumn
- *
  * @property string $pageTypeColumn
- *
  * @property string $brandColumn
  * @property string $priceColumn
  * @property string $currencyColumn
@@ -38,9 +36,7 @@ use Illuminate\Support\Carbon;
  * @method array<int, string>|null tagsValue()
  * @method string|null urlValue()
  * @method Carbon|null publishedAtValue()
- *
  * @method string|null pageTypeValue()
- *
  * @method string|null brandValue()
  * @method float|null priceValue()
  * @method string|null currencyValue()

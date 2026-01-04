@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AchyutN\LaravelSEO\Schemas;
 
 use AchyutN\LaravelSEO\Data\ResolvedSEO;
@@ -7,11 +9,6 @@ use RalphJSmit\Laravel\SEO\SchemaCollection;
 
 trait ProductSchema
 {
-    protected function productSchemaType(): string
-    {
-        return 'Product';
-    }
-
     public function buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO): SchemaCollection
     {
         return $schema
@@ -34,5 +31,10 @@ trait ProductSchema
                     ),
                 ],
             ]);
+    }
+
+    protected function productSchemaType(): string
+    {
+        return 'Product';
     }
 }
