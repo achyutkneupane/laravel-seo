@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Data;
 
-final class Breadcrumb
+final readonly class Breadcrumb
 {
     public function __construct(
         private string $label,
