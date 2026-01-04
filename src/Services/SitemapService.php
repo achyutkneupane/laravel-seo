@@ -25,7 +25,9 @@ final class SitemapService
         foreach ($seoModels as $seoModel) {
             $model = $seoModel->model;
 
-            if (! $model) continue;
+            if (! $model) {
+                continue;
+            }
 
             [$url, $imageUrl, $title, $description, $updatedAt] = $this->getModelValues($model);
 
@@ -65,7 +67,9 @@ final class SitemapService
         foreach ($seoModels as $seoModel) {
             $model = $seoModel->model;
 
-            if (! $model) continue;
+            if (! $model) {
+                continue;
+            }
 
             /** @phpstan-var string|null $url */
             [$url] = $this->getModelValues($model);
@@ -91,7 +95,7 @@ final class SitemapService
         /** @var string|null $description */
         $description = method_exists($model, 'getDescriptionValue') ? $model->getDescriptionValue() : null;
         /** @var Carbon $updatedAt */
-        $updatedAt = method_exists($model, 'getUpdatedAtValue') ? $model->getUpdatedAtValue() : null;
+        $updatedAt = method_exists($model, 'getModifiedAtValue') ? $model->getModifiedAtValue() : null;
 
         return [$url, $imageUrl, $title, $description, $updatedAt];
     }
