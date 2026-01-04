@@ -56,7 +56,7 @@ trait InteractsWithSEO
      *
      * @return array<int, Breadcrumb>
      */
-    public function breadCrumbs(): array
+    public function breadcrumbs(): array
     {
         return [];
     }
@@ -117,9 +117,9 @@ trait InteractsWithSEO
                 ->put('author', $authorArray)
                 ->put('datePublished', $publishedAt)));
 
-        if (count($this->breadCrumbs()) > 0) {
+        if (count($this->breadcrumbs()) > 0) {
             $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
-                $breadcrumbs->breadcrumbs = collect($this->breadCrumbs())
+                $breadcrumbs->breadcrumbs = collect($this->breadcrumbs())
                     ->filter(fn ($breadcrumb): bool => $breadcrumb instanceof Breadcrumb)
                     ->mapWithKeys(fn (Breadcrumb $breadcrumb): array => $breadcrumb->toArray());
             });
