@@ -6,9 +6,9 @@
 [![Lint & Test PR](https://github.com/achyutkneupane/laravel-seo/actions/workflows/prlint.yml/badge.svg)](https://github.com/achyutkneupane/laravel-seo/actions/workflows/prlint.yml)
 
 An opinionated Laravel SEO package to manage SEO on Eloquent models.
-This package makes use of an un-opinionated package [ralphjsmit/laravel-seo](https://github.com/ralphjsmit/laravel-seo) and adds a pattern of auto-generating SEO metadata for Eloquent models with customization.
+This package makes use of an un-opinionated package [ralphjsmit/laravel-seo](https://github.com/ralphjsmit/laravel-seo) and adds a pattern of auto-generating SEO metadata and sitemaps for Eloquent models with customization.
 
-This package lets you generate SEO metadata directly from Eloquent models without
+This package lets you generate SEO metadata and sitemap directly from Eloquent models without
 manually wiring SEO data in controllers or views.
 It supports multiple schema types including [Blog](#blog-schema), [Product](#product-schema), and generic [Page](#page-schema) schema.
 
@@ -151,6 +151,16 @@ To render the SEO tags in your views, you can use the following Blade directive:
 ```
 
 Replace `$model` with the instance of your Eloquent model.
+
+### Sitemaps
+
+Once you have models using the `InteractsWithSEO` trait, you automatically have them included in your sitemap.
+You can access the sitemap in two formats:
+
+- XML Sitemap: `/sitemap.xml`
+- TXT Sitemap: `/sitemap.txt`
+
+The XML sitemap will be auto-injected in your blade layout along with the metadata.
 
 ### Customization
 
