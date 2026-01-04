@@ -138,7 +138,7 @@ trait InteractsWithSEO
             modifiedAt: $this->getModifiedAtValue(),
             pageType: $this->getPageTypeValue(),
             brand: $this->getBrandValue(),
-            price: $this->getPriceValue(),
+            price: (string) $this->getPriceValue(),
             currency: $this->getCurrencyValue(),
             isAvailable: $this->getAvailabilityValue(),
             sku: $this->getSkuValue(),
