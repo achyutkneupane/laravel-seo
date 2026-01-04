@@ -22,17 +22,19 @@ final class SitemapService
         foreach ($seoModels as $seoModel) {
             $model = $seoModel->model;
 
-            if (! $model || ! $model->getUrlValue()) continue;
+            if (! $model || ! $model->getUrlValue()) {
+                continue;
+            }
 
             $xml[] = '<url>';
-            $xml[] = '<loc>'.htmlspecialchars($model->getUrlValue(), ENT_XML1, 'UTF-8').'</loc>';
+            $xml[] = '<loc>'.htmlspecialchars((string) $model->getUrlValue(), ENT_XML1, 'UTF-8').'</loc>';
             if ($model->updated_at) {
-                $xml[] = '<lastmod>'.htmlspecialchars($model->updated_at->toAtomString(), ENT_XML1, 'UTF-8').'</lastmod>';
+                $xml[] = '<lastmod>'.htmlspecialchars((string) $model->updated_at->toAtomString(), ENT_XML1, 'UTF-8').'</lastmod>';
             }
 
             if ($model->getImageValue()) {
                 $xml[] = '<image:image>';
-                $xml[] = '<image:loc>'.htmlspecialchars($model->getImageValue(), ENT_XML1, 'UTF-8').'</image:loc>';
+                $xml[] = '<image:loc>'.htmlspecialchars((string) $model->getImageValue(), ENT_XML1, 'UTF-8').'</image:loc>';
                 $xml[] = '<image:title>'.htmlspecialchars($model->getTitleValue() ?? '', ENT_XML1, 'UTF-8').'</image:title>';
                 $xml[] = '<image:caption>'.htmlspecialchars($model->getDescriptionValue() ?? '', ENT_XML1, 'UTF-8').'</image:caption>';
                 $xml[] = '</image:image>';
@@ -55,7 +57,9 @@ final class SitemapService
         foreach ($seoModels as $seoModel) {
             $model = $seoModel->model;
 
-            if (! $model || ! $model->getUrlValue()) continue;
+            if (! $model || ! $model->getUrlValue()) {
+                continue;
+            }
 
             $txt[] = $model->getUrlValue();
         }
@@ -71,7 +75,7 @@ final class SitemapService
             ->with('model')
             ->orderBy('model_type')
             ->lazy()
-            ->each(function (SEO $seoModel) {
+            ->each(function (SEO $seoModel): void {
                 $seoModel->load('model');
             });
     }

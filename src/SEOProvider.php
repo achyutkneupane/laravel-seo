@@ -32,11 +32,7 @@ final class SEOProvider extends BaseServiceProvider
 
     private function generateRoutes(): void
     {
-        Route::get('/sitemap.xml', function () {
-            return app(SitemapService::class)->toXML();
-        })->name('sitemap.xml');
-        Route::get('/sitemap.txt', function () {
-            return app(SitemapService::class)->toTXT();
-        });
+        Route::get('/sitemap.xml', fn () => app(SitemapService::class)->toXML())->name('sitemap.xml');
+        Route::get('/sitemap.txt', fn () => app(SitemapService::class)->toTXT());
     }
 }
