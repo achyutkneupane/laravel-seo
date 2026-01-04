@@ -29,7 +29,13 @@ final class SitemapService
                 continue;
             }
 
-            [$url, $imageUrl, $title, $description, $updatedAt] = $this->getModelValues($model);
+            [
+                'url' => $url,
+                'imageUrl' => $imageUrl,
+                'title' => $title,
+                'description' => $description,
+                'updatedAt' => $updatedAt,
+            ] = $this->getModelValues($model);
 
             if ($url === null) {
                 continue;
@@ -72,7 +78,9 @@ final class SitemapService
             }
 
             /** @phpstan-var string|null $url */
-            [$url] = $this->getModelValues($model);
+            [
+                'url' => $url
+            ] = $this->getModelValues($model);
 
             if ($url !== null) {
                 $txt[] = $url;
@@ -83,8 +91,8 @@ final class SitemapService
             ->header('Content-Type', 'text/plain; charset=UTF-8');
     }
 
-    /** @return array{0: string|null, 1: string|null, 2: string|null, 3: string|null, 4: Carbon|null} */
-    private function getModelValues(Model $model): array
+    /** @return array{url: string|null, imageUrl: string|null, title: string|null, description: string|null, updatedAt: Carbon|null, tags: array<int, string>, author: string|null, publisher: string|null} */
+    public function getModelValues(Model $model): array
     {
         /** @var string|null $url */
         $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
@@ -96,8 +104,23 @@ final class SitemapService
         $description = method_exists($model, 'getDescriptionValue') ? $model->getDescriptionValue() : null;
         /** @var Carbon $updatedAt */
         $updatedAt = method_exists($model, 'getModifiedAtValue') ? $model->getModifiedAtValue() : null;
+        /** @var array<int, string> $tags */
+        $tags = method_exists($model, 'getTagsValue') ? $model->getTagsValue() : [];
+        /** @var string|null $author */
+        $author = method_exists($model, 'getAuthorValue') ? $model->getAuthorValue() : null;
+        /** @var string|null $publisher */
+        $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
 
-        return [$url, $imageUrl, $title, $description, $updatedAt];
+        return [
+            'url' => $url,
+            'imageUrl' => $imageUrl,
+            'title' => $title,
+            'description' => $description,
+            'updatedAt' => $updatedAt,
+            'tags' => $tags,
+            'author' => $author,
+            'publisher' => $publisher,
+        ];
     }
 
     /** @return LazyCollection<int, SEO> */

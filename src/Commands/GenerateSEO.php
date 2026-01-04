@@ -5,16 +5,24 @@ declare(strict_types=1);
 namespace AchyutN\LaravelSEO\Commands;
 
 use AchyutN\LaravelSEO\Models\SEO;
+use AchyutN\LaravelSEO\Services\SitemapService;
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 
-class GenerateSEO extends Command
+final class GenerateSEO extends Command
 {
     protected $signature = 'seo:generate {--regenerate : Regenerate SEO entries even if they exist}';
+
     protected $description = 'Generate missing SEO entries for all models that uses InteractsWithSEO trait';
+
+    public function __construct(
+        public SitemapService $sitemapService
+    ) {
+        parent::__construct();
+    }
 
     public function handle(): void
     {
@@ -23,62 +31,81 @@ class GenerateSEO extends Command
 
         $models = $this->discoverModels();
 
-        if (empty($models)) {
+        if ($models === []) {
             $this->info('No models using InteractsWithSEO found.');
+
             return;
         }
 
         foreach ($models as $modelClass) {
+            /** @phpstan-var string $modelClass */
             $this->info("Processing model: {$modelClass}");
 
-            $modelClass::query()->chunkById(100, function ($records) use ($regenerate) {
-                foreach ($records as $instance) {
-                    if (!$regenerate && $instance->seo) {
-                        continue;
-                    }
+            /** @var Model $model */
+            $model = app($modelClass);
 
-                    SEO::query()
-                        ->updateOrCreate([
-                            'model_id' => $instance->getKey(),
-                            'model_type' => $instance::class,
-                        ], [
-                            'meta_title' => $instance->getTitleValue(),
-                            'og_title' => $instance->getTitleValue(),
-                            'meta_description' => $instance->getDescriptionValue(),
-                            'og_description' => $instance->getDescriptionValue(),
-                            'meta_keywords' => $instance->getTagsValue(),
-                            'author' => $instance->getAuthorValue(),
-                            'publisher' => $instance->getPublisherValue(),
-                            'robots' => ['index', 'follow'],
-                        ]);
-                }
-            });
+            $model->query()
+                ->chunkById(100, function ($records) use ($regenerate): void {
+                    foreach ($records as $instance) {
+                        /** @var SEO|null $seo */
+                        $seo = $instance->getAttribute('seo');
+
+                        if (! $regenerate && $seo !== null) {
+                            continue;
+                        }
+
+                        [
+                            'title' => $title,
+                            'description' => $description,
+                            'tags' => $tags,
+                            'author' => $author,
+                            'publisher' => $publisher,
+                        ] = $this->sitemapService->getModelValues($instance);
+
+                        SEO::query()
+                            ->updateOrCreate([
+                                'model_id' => $instance->getKey(),
+                                'model_type' => $instance::class,
+                            ], [
+                                'meta_title' => $title,
+                                'og_title' => $title,
+                                'meta_description' => $description,
+                                'og_description' => $description,
+                                'meta_keywords' => $tags,
+                                'author' => $author,
+                                'publisher' => $publisher,
+                                'robots' => ['index', 'follow'],
+                            ]);
+                    }
+                });
         }
     }
 
+    /** @return array<int, class-string<Model>> */
     protected function discoverModels(): array
     {
         $path = app_path('Models');
 
         $models = [];
 
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             return $models;
         }
 
         foreach (File::allFiles($path) as $file) {
             $class = $this->classFromFile($file->getPathname());
-
-            if (!$class || !class_exists($class)) {
+            if (! $class) {
+                continue;
+            }
+            if (! class_exists($class)) {
                 continue;
             }
 
             $reflection = new ReflectionClass($class);
-
-            if (
-                $reflection->isAbstract() ||
-                !is_subclass_of($class, Model::class)
-            ) {
+            if ($reflection->isAbstract()) {
+                continue;
+            }
+            if (! is_subclass_of($class, Model::class)) {
                 continue;
             }
 
@@ -98,13 +125,17 @@ class GenerateSEO extends Command
     {
         $contents = file_get_contents($path);
 
+        if ($contents === false) {
+            return null;
+        }
+
         if (
-            !preg_match('/namespace\s+(.+?);/', $contents, $ns) ||
-            !preg_match('/class\s+(\w+)/', $contents, $cls)
+            ! preg_match('/namespace\s+(.+?);/', $contents, $ns) ||
+            ! preg_match('/class\s+(\w+)/', $contents, $cls)
         ) {
             return null;
         }
 
-        return $ns[1] . '\\' . $cls[1];
+        return $ns[1].'\\'.$cls[1];
     }
 }

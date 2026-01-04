@@ -45,7 +45,7 @@ final class SEOProvider extends BaseServiceProvider
         if ($this->app->runningInConsole()) {
             AboutCommand::add(
                 'SEO',
-                fn () => [
+                fn (): array => [
                     'Version' => InstalledVersions::getPrettyVersion('achyutn/laravel-seo'),
                 ]
             );
