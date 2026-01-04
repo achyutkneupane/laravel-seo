@@ -6,6 +6,8 @@ namespace AchyutN\LaravelSEO;
 
 use AchyutN\LaravelSEO\Commands\RegenerateSEO;
 use AchyutN\LaravelSEO\Services\SitemapService;
+use Composer\InstalledVersions;
+use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
@@ -41,6 +43,13 @@ final class SEOProvider extends BaseServiceProvider
     private function registerCommands(): void
     {
         if ($this->app->runningInConsole()) {
+            AboutCommand::add(
+                'SEO',
+                fn () => [
+                    'Version' => InstalledVersions::getPrettyVersion('achyutn/laravel-seo'),
+                ]
+            );
+
             $this->commands([
                 RegenerateSEO::class,
             ]);
