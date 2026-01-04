@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace AchyutN\LaravelSEO\Services;
 
 use AchyutN\LaravelSEO\Models\SEO;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
 
 final class SitemapService
 {
     public function toXML(): Response
     {
+        /** @var LazyCollection<int, SEO> $seoModels */
         $seoModels = $this->getSEOEntries();
 
         $xml = [];
@@ -22,21 +26,25 @@ final class SitemapService
         foreach ($seoModels as $seoModel) {
             $model = $seoModel->model;
 
-            if (! $model || ! $model->getUrlValue()) {
+            if (! $model) continue;
+
+            [$url, $imageUrl, $title, $description, $updatedAt] = $this->getModelValues($model);
+
+            if ($url === null) {
                 continue;
             }
 
             $xml[] = '<url>';
-            $xml[] = '<loc>'.htmlspecialchars((string) $model->getUrlValue(), ENT_XML1, 'UTF-8').'</loc>';
-            if ($model->updated_at) {
-                $xml[] = '<lastmod>'.htmlspecialchars((string) $model->updated_at->toAtomString(), ENT_XML1, 'UTF-8').'</lastmod>';
+            $xml[] = '<loc>'.htmlspecialchars($url, ENT_XML1, 'UTF-8').'</loc>';
+            if ($updatedAt) {
+                $xml[] = '<lastmod>'.htmlspecialchars($updatedAt->toAtomString(), ENT_XML1, 'UTF-8').'</lastmod>';
             }
 
-            if ($model->getImageValue()) {
+            if ($imageUrl) {
                 $xml[] = '<image:image>';
-                $xml[] = '<image:loc>'.htmlspecialchars((string) $model->getImageValue(), ENT_XML1, 'UTF-8').'</image:loc>';
-                $xml[] = '<image:title>'.htmlspecialchars($model->getTitleValue() ?? '', ENT_XML1, 'UTF-8').'</image:title>';
-                $xml[] = '<image:caption>'.htmlspecialchars($model->getDescriptionValue() ?? '', ENT_XML1, 'UTF-8').'</image:caption>';
+                $xml[] = '<image:loc>'.htmlspecialchars($imageUrl, ENT_XML1, 'UTF-8').'</image:loc>';
+                $xml[] = '<image:title>'.htmlspecialchars($title ?? '', ENT_XML1, 'UTF-8').'</image:title>';
+                $xml[] = '<image:caption>'.htmlspecialchars($description ?? '', ENT_XML1, 'UTF-8').'</image:caption>';
                 $xml[] = '</image:image>';
             }
             $xml[] = '</url>';
@@ -50,6 +58,7 @@ final class SitemapService
 
     public function toTXT(): Response
     {
+        /** @var LazyCollection<int, SEO> $seoModels */
         $seoModels = $this->getSEOEntries();
 
         $txt = [];
@@ -57,15 +66,35 @@ final class SitemapService
         foreach ($seoModels as $seoModel) {
             $model = $seoModel->model;
 
-            if (! $model || ! $model->getUrlValue()) {
-                continue;
-            }
+            if (! $model) continue;
 
-            $txt[] = $model->getUrlValue();
+            /** @phpstan-var string|null $url */
+            [$url] = $this->getModelValues($model);
+
+            if ($url !== null) {
+                $txt[] = $url;
+            }
         }
 
         return response(implode("\n", $txt))
             ->header('Content-Type', 'text/plain; charset=UTF-8');
+    }
+
+    /** @return array{0: string|null, 1: string|null, 2: string|null, 3: string|null, 4: Carbon|null} */
+    private function getModelValues(Model $model): array
+    {
+        /** @var string|null $url */
+        $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
+        /** @var string|null $imageUrl */
+        $imageUrl = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
+        /** @var string|null $title */
+        $title = method_exists($model, 'getTitleValue') ? $model->getTitleValue() : null;
+        /** @var string|null $description */
+        $description = method_exists($model, 'getDescriptionValue') ? $model->getDescriptionValue() : null;
+        /** @var Carbon $updatedAt */
+        $updatedAt = method_exists($model, 'getUpdatedAtValue') ? $model->getUpdatedAtValue() : null;
+
+        return [$url, $imageUrl, $title, $description, $updatedAt];
     }
 
     /** @return LazyCollection<int, SEO> */
