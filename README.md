@@ -174,68 +174,100 @@ Methods always take precedence over properties.
 
 #### Supported Override Methods
 
-Define these **on your model** when the value is computed or derived.
+Define these **on your model** when the value is computed or derived. Organized by context:
+
+##### Common Methods
 
 | Method                | Return Type     | When to use               |
 |-----------------------|-----------------|---------------------------|
 | `titleValue()`        | `?string`       | Computed or dynamic title |
 | `descriptionValue()`  | `?string`       | Generated description     |
 | `categoryValue()`     | `?string`       | Derived category          |
-| `imageValue()`        | `?string`       | Media or CDN URL          |
+| `imageValue()`        | `?string`       | Media URL                 |
 | `authorValue()`       | `?string`       | Relation-based author     |
 | `authorUrlValue()`    | `?string`       | Author profile link       |
 | `publisherValue()`    | `?string`       | Brand or company name     |
 | `publisherUrlValue()` | `?string`       | Publisher homepage        |
 | `tagsValue()`         | `array<string>` | Normalized tags           |
-| `urlValue()`          | `?string`       | Custom canonical URL      |
+| `urlValue()`          | `?string`       | The page URL              |
 | `publishedAtValue()`  | `?Carbon`       | Computed publish date     |
+| `pageTypeValue()`     | `?string`       | Custom page type          |
+
+##### Product-Specific Methods
+
+| Method                | Return Type | When to use          |
+|-----------------------|-------------|----------------------|
+| `brandValue()`        | `?string`   | Product brand        |
+| `priceValue()`        | `?float`    | Product price        |
+| `currencyValue()`     | `?string`   | Price currency       |
+| `availabilityValue()` | `bool`      | Product availability |
+| `skuValue()`          | `?string`   | Product SKU          |
+
+##### Page-Specific Methods
+
+| Method             | Return Type | When to use                         |
+|--------------------|-------------|-------------------------------------|
+| `pageTypeValue()`  | `?string`   | Type of page (landing, about, etc.) |
 
 ##### Example
 
 ```php
-class Post extends Model
+class Product extends Model
 {
     use InteractsWithSEO;
 
-    protected function titleValue(): ?string
+    protected function priceValue(): ?float
     {
-        return "{$this->title} | My Blog";
+        return $this->price;
     }
 
-    protected function tagsValue(): ?array
+    protected function availabilityValue(): bool
     {
-        return $this->tags?->pluck('name')->all();
+        return $this->is_available;
     }
 }
 ```
 
 #### Supported Properties
 
-Define these **on your Eloquent model** to change which column is used.
+Define these **on your Eloquent model** to change which column is used. Organized by context:
 
-| Property              | Default         | Purpose            |
-|-----------------------|-----------------|--------------------|
-| `$titleColumn`        | `title`         | Page title         |
-| `$descriptionColumn`  | `description`   | Meta description   |
-| `$categoryColumn`     | `category`      | Content category   |
-| `$imageColumn`        | `image`         | Open Graph image   |
-| `$authorColumn`       | `author`        | Author name        |
-| `$authorUrlColumn`    | `author_url`    | Author profile URL |
-| `$publisherColumn`    | `publisher`     | Publisher name     |
-| `$publisherUrlColumn` | `publisher_url` | Publisher URL      |
-| `$tagsColumn`         | `tags`          | Tags or keywords   |
-| `$urlColumn`          | `url`           | Canonical URL      |
-| `$publishedAtColumn`  | `published_at`  | Publish date       |
+##### Common Properties
+
+| Property              | Default         | Purpose             |
+|-----------------------|-----------------|---------------------|
+| `$titleColumn`        | `title`         | Page title          |
+| `$descriptionColumn`  | `description`   | Meta description    |
+| `$categoryColumn`     | `category`      | Content category    |
+| `$imageColumn`        | `image`         | Open Graph image    |
+| `$authorColumn`       | `author`        | Author name         |
+| `$authorUrlColumn`    | `author_url`    | Author profile URL  |
+| `$publisherColumn`    | `publisher`     | Publisher name      |
+| `$publisherUrlColumn` | `publisher_url` | Publisher URL       |
+| `$tagsColumn`         | `tags`          | Tags or keywords    |
+| `$urlColumn`          | `url`           | The page URL        |
+| `$publishedAtColumn`  | `published_at`  | Publish date        |
+| `$pageTypeColumn`     | `page_type`     | Page type           |
+
+##### Product-Specific Properties
+
+| Property               | Default         | Purpose              |
+|------------------------|-----------------|----------------------|
+| `$brandColumn`         | `brand`         | Product brand        |
+| `$priceColumn`         | `price`         | Product price        |
+| `$currencyColumn`      | `currency`      | Price currency       |
+| `$availabilityColumn`  | `is_available`  | Product availability |
+| `$skuColumn`           | `sku`           | Product SKU          |
 
 ##### Example
 
 ```php
-class Post extends Model
+class Product extends Model
 {
     use InteractsWithSEO;
 
-    protected string $titleColumn = 'seo_title';
-    protected string $imageColumn = 'og_image';
+    protected string $priceColumn = 'product_price';
+    protected string $brandColumn = 'product_brand';
 }
 ```
 
