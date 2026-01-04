@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO;
 
-use AchyutN\LaravelSEO\Commands\RegenerateSEO;
+use AchyutN\LaravelSEO\Commands\GenerateSEO;
 use AchyutN\LaravelSEO\Services\SitemapService;
 use Composer\InstalledVersions;
 use Illuminate\Foundation\Console\AboutCommand;
@@ -51,7 +51,7 @@ final class SEOProvider extends BaseServiceProvider
             );
 
             $this->commands([
-                RegenerateSEO::class,
+                GenerateSEO::class,
             ]);
         }
     }

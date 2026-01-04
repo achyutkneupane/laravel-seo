@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 
-class RegenerateSEO extends Command
+class GenerateSEO extends Command
 {
-    protected $signature = 'seo:regenerate';
-    protected $description = 'Regenerate SEO data for all models that uses InteractsWithSEO trait';
+    protected $signature = 'seo:generate';
+    protected $description = 'Generate missing SEO entries for all models that uses InteractsWithSEO trait';
 
     public function handle(): void
     {
@@ -30,6 +30,10 @@ class RegenerateSEO extends Command
 
             $modelClass::query()->chunkById(100, function ($records) {
                 foreach ($records as $instance) {
+                    if ($instance->seo) {
+                        continue;
+                    }
+
                     SEO::query()
                         ->updateOrCreate([
                             'model_id' => $instance->getKey(),
