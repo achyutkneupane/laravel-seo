@@ -37,7 +37,7 @@
         }
     ],
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.2",
         "ralphjsmit/laravel-seo": "^1.7"
     },
     "require-dev": {
@@ -72,5 +72,23 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
-    }
+    },
+    "funding": [
+        {
+            "type": "patreon",
+            "url": "https://www.patreon.com/Achyut"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/achyutkneupane"
+        },
+        {
+            "type": "other",
+            "url": "https://buymeacoffee.com/achyutn"
+        },
+        {
+            "type": "other",
+            "url": "https://buymemomo.com/achyut"
+        }
+    ]
 }
