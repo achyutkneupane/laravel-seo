@@ -28,24 +28,24 @@ class RegenerateSEO extends Command
         foreach ($models as $modelClass) {
             $this->info("Processing model: {$modelClass}");
 
-            $instances = $modelClass::query()->lazy();
-
-            foreach ($instances as $instance) {
-                SEO::query()
-                    ->updateOrCreate([
-                        'model_id' => $instance->getKey(),
-                        'model_type' => $instance::class,
-                    ], [
-                        'meta_title' => $instance->getTitleValue(),
-                        'og_title' => $instance->getTitleValue(),
-                        'meta_description' => $instance->getDescriptionValue(),
-                        'og_description' => $instance->getDescriptionValue(),
-                        'meta_keywords' => $instance->getTagsValue(),
-                        'author' => $instance->getAuthorValue(),
-                        'publisher' => $instance->getPublisherValue(),
-                        'robots' => ['index', 'follow'],
-                    ]);
-            }
+            $modelClass::query()->chunkById(100, function ($records) {
+                foreach ($records as $instance) {
+                    SEO::query()
+                        ->updateOrCreate([
+                            'model_id' => $instance->getKey(),
+                            'model_type' => $instance::class,
+                        ], [
+                            'meta_title' => $instance->getTitleValue(),
+                            'og_title' => $instance->getTitleValue(),
+                            'meta_description' => $instance->getDescriptionValue(),
+                            'og_description' => $instance->getDescriptionValue(),
+                            'meta_keywords' => $instance->getTagsValue(),
+                            'author' => $instance->getAuthorValue(),
+                            'publisher' => $instance->getPublisherValue(),
+                            'robots' => ['index', 'follow'],
+                        ]);
+                }
+            });
         }
     }
 
@@ -55,14 +55,14 @@ class RegenerateSEO extends Command
 
         $models = [];
 
-        if (! is_dir($path)) {
+        if (!is_dir($path)) {
             return $models;
         }
 
         foreach (File::allFiles($path) as $file) {
             $class = $this->classFromFile($file->getPathname());
 
-            if (! $class || ! class_exists($class)) {
+            if (!$class || !class_exists($class)) {
                 continue;
             }
 
@@ -70,7 +70,7 @@ class RegenerateSEO extends Command
 
             if (
                 $reflection->isAbstract() ||
-                ! is_subclass_of($class, Model::class)
+                !is_subclass_of($class, Model::class)
             ) {
                 continue;
             }
@@ -92,12 +92,12 @@ class RegenerateSEO extends Command
         $contents = file_get_contents($path);
 
         if (
-            ! preg_match('/namespace\s+(.+?);/', $contents, $ns) ||
-            ! preg_match('/class\s+(\w+)/', $contents, $cls)
+            !preg_match('/namespace\s+(.+?);/', $contents, $ns) ||
+            !preg_match('/class\s+(\w+)/', $contents, $cls)
         ) {
             return null;
         }
 
-        return $ns[1].'\\'.$cls[1];
+        return $ns[1] . '\\' . $cls[1];
     }
 }
