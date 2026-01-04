@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  *
  * @property string $pageTypeColumn
  *
+ * @property string $brandColumn
  * @property string $priceColumn
  * @property string $currencyColumn
  * @property string $availabilityColumn
@@ -40,6 +41,7 @@ use Illuminate\Support\Carbon;
  *
  * @method string|null pageTypeValue()
  *
+ * @method string|null brandValue()
  * @method float|null priceValue()
  * @method string|null currencyValue()
  * @method bool availabilityValue()
@@ -153,6 +155,15 @@ trait HasColumns
         }
 
         return data_get($this, $this->pageTypeColumn());
+    }
+
+    public function getBrandValue(): ?string
+    {
+        if (method_exists($this, 'brandValue') && $this->brandValue() !== null) {
+            return $this->brandValue();
+        }
+
+        return data_get($this, $this->brandColumn());
     }
 
     public function getPriceValue(): ?float
@@ -273,6 +284,13 @@ trait HasColumns
         return property_exists($this, 'pageTypeColumn')
             ? $this->pageTypeColumn
             : 'page_type';
+    }
+
+    protected function brandColumn(): string
+    {
+        return property_exists($this, 'brandColumn')
+            ? $this->brandColumn
+            : 'brand';
     }
 
     protected function priceColumn(): string
