@@ -119,9 +119,11 @@ trait InteractsWithSEO
         $publisher = $seo->publisher ?? $this->getPublisherValue() ?? config('app.name');
         $publisherUrl = $this->getPublisherUrlValue() ?? null;
 
-        $seoImage = $seo->og_image ? '/storage/'.$seo->og_image : null;
-        $fallbackImage = $this->getImageValue() ? '/storage/'.$this->getImageValue() : null;
+        $seoImage = $seo->og_image ?? null;
+        $fallbackImage = $this->getImageValue() ?? null;
         $image = $seoImage ?? $fallbackImage;
+
+        $imageURL = preg_match('/^https?:\/\//', (string)$image) ? (string)$image : ($image ? '/storage/'.$image : null);
 
         return new ResolvedSEO(
             title: $title,
@@ -133,7 +135,7 @@ trait InteractsWithSEO
             authorUrl: $authorUrl,
             publisher: $publisher,
             publisherUrl: $publisherUrl,
-            image: $image,
+            image: $imageURL,
             publishedAt: $this->getPublishedAtValue(),
             modifiedAt: $this->getModifiedAtValue(),
             pageType: $this->getPageTypeValue(),
