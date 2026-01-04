@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO;
 
+use AchyutN\LaravelSEO\Services\SitemapService;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 final class SEOProvider extends BaseServiceProvider
@@ -17,6 +19,8 @@ final class SEOProvider extends BaseServiceProvider
         $this->publishesMigrations([
             __DIR__.'/../database/create_seo_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_seo_table.php'),
         ], 'laravel-seo');
+
+        $this->generateRoutes();
     }
 
     public function register(): void
@@ -24,5 +28,12 @@ final class SEOProvider extends BaseServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/seo.php', 'seo'
         );
+    }
+
+    private function generateRoutes(): void
+    {
+        Route::get('/sitemap.xml', function () {
+            return app(SitemapService::class)->toXML();
+        });
     }
 }
