@@ -27,6 +27,7 @@ final class ResolvedSEO
 
         public ?string $pageType,
 
+        public ?string $brand,
         public ?string $price,
         public ?string $currency,
         public bool $isAvailable = false,
@@ -43,6 +44,15 @@ final class ResolvedSEO
         ];
 
         return [$authorData];
+    }
+
+    /** @return AuthorArray */
+    public function brandArray(): array
+    {
+        return [
+            '@type' => 'Brand',
+            'name' => $this->brand,
+        ];
     }
 
     /** @return AuthorArray[] */

@@ -107,6 +107,7 @@ trait InteractsWithSEO
             image: $image,
             publishedAt: $publishedAt,
             pageType: $this->pageTypeValue(),
+            brand: $this->brandValue(),
             price: $this->priceValue(),
             currency: $this->currencyValue(),
             isAvailable: $this->availabilityValue(),
