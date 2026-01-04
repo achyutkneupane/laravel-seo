@@ -34,7 +34,7 @@ final class SEOProvider extends BaseServiceProvider
     {
         Route::get('/sitemap.xml', function () {
             return app(SitemapService::class)->toXML();
-        });
+        })->name('sitemap.xml');
         Route::get('/sitemap.txt', function () {
             return app(SitemapService::class)->toTXT();
         });
