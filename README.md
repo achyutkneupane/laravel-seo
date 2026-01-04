@@ -10,6 +10,7 @@ This package makes use of an un-opinionated package [ralphjsmit/laravel-seo](htt
 
 This package lets you generate SEO metadata directly from Eloquent models without
 manually wiring SEO data in controllers or views.
+It supports multiple schema types including [Blog](#blog-schema), [Product](#product-schema), and generic [Page](#page-schema) schema.
 
 ## Installation
 
@@ -56,99 +57,68 @@ class Post extends Model
 ```
 
 This will automatically use the default columns (title, description, etc).
+You can also auto-generate [breadcrumbs](#breadcrumbs) and [schema markup](#schema-types) for your model by implementing the respective methods or traits.
 
-### Customization
+### Schema Types
 
-This package resolves SEO data using a simple priority order:
+This package supports multiple schema types using traits:
 
-1. A custom `*Value()` method, if defined on the model
-2. A custom `*$Column` property, if defined on the model
-3. A default column name
+- [BlogSchema](#blog-schema) for blog posts
+- [ProductSchema](#product-schema) for products (e-commerce)
+- [PageSchema](#page-schema) for generic pages
 
-You can customize each field independently.
+Each schema trait implements a `buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO)` method, which receives resolved SEO data from your model. To use any schema, add the corresponding trait to your model along with the interface `AchyutN\LaravelSEO\Contracts\HasMarkup`.
 
-#### Resolution Priority
+#### Blog Schema
 
-For each field:
-
-1. `*Value()` method
-2. `*$Column` property
-3. Default column name
-
-Methods always take precedence over properties.
-
-#### Supported Override Methods
-
-Define these **on your model** when the value is computed or derived.
-
-| Method                | Return Type     | When to use               |
-|-----------------------|-----------------|---------------------------|
-| `titleValue()`        | `?string`       | Computed or dynamic title |
-| `descriptionValue()`  | `?string`       | Generated description     |
-| `categoryValue()`     | `?string`       | Derived category          |
-| `imageValue()`        | `?string`       | Media or CDN URL          |
-| `authorValue()`       | `?string`       | Relation-based author     |
-| `authorUrlValue()`    | `?string`       | Author profile link       |
-| `publisherValue()`    | `?string`       | Brand or company name     |
-| `publisherUrlValue()` | `?string`       | Publisher homepage        |
-| `tagsValue()`         | `array<string>` | Normalized tags           |
-| `urlValue()`          | `?string`       | Custom canonical URL      |
-| `publishedAtValue()`  | `?Carbon`       | Computed publish date     |
-
-##### Example
+To use the Blog schema, add the `AchyutN\LaravelSEO\Schemas\BlogSchema` trait to your model:
 
 ```php
-class Post extends Model
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\BlogSchema;
+
+class Post extends Model implements HasMarkup
 {
     use InteractsWithSEO;
+    use BlogSchema;
 
-    protected function titleValue(): ?string
-    {
-        return "{$this->title} | My Blog";
-    }
-
-    protected function tagsValue(): ?array
-    {
-        return $this->tags?->pluck('name')->all();
-    }
+    // ...
 }
 ```
 
-#### Supported Properties
+#### Product Schema
 
-Define these **on your Eloquent model** to change which column is used.
-
-| Property              | Default         | Purpose            |
-|-----------------------|-----------------|--------------------|
-| `$titleColumn`        | `title`         | Page title         |
-| `$descriptionColumn`  | `description`   | Meta description   |
-| `$categoryColumn`     | `category`      | Content category   |
-| `$imageColumn`        | `image`         | Open Graph image   |
-| `$authorColumn`       | `author`        | Author name        |
-| `$authorUrlColumn`    | `author_url`    | Author profile URL |
-| `$publisherColumn`    | `publisher`     | Publisher name     |
-| `$publisherUrlColumn` | `publisher_url` | Publisher URL      |
-| `$tagsColumn`         | `tags`          | Tags or keywords   |
-| `$urlColumn`          | `url`           | Canonical URL      |
-| `$publishedAtColumn`  | `published_at`  | Publish date       |
-
-##### Example
+To use the Product schema, add the `AchyutN\LaravelSEO\Schemas\ProductSchema` trait to your model:
 
 ```php
-class Post extends Model
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\ProductSchema;
+
+class Product extends Model implements HasMarkup
 {
     use InteractsWithSEO;
+    use ProductSchema;
 
-    protected string $titleColumn = 'seo_title';
-    protected string $imageColumn = 'og_image';
+    // ...
 }
 ```
 
-#### Notes
+#### Page Schema
 
-- All overrides are optional
-- Do not define both a property and a method unless intentional
-- IDEs and static analyzers understand all extension points via PHPDoc
+To use the Page schema, add the `AchyutN\LaravelSEO\Schemas\PageSchema` trait to your model:
+
+```php
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\PageSchema;
+
+class Page extends Model implements HasMarkup
+{
+    use InteractsWithSEO;
+    use PageSchema;
+
+    // ...
+}
+```
 
 ### Breadcrumbs
 
@@ -182,32 +152,130 @@ To render the SEO tags in your views, you can use the following Blade directive:
 
 Replace `$model` with the instance of your Eloquent model.
 
-### Full Example
+### Customization
+
+This package resolves SEO data using a simple priority order:
+
+1. A custom `*Value()` method, if defined on the model
+2. A custom `$*Column` property, if defined on the model
+3. A default column name
+
+You can customize each field independently.
+
+#### Resolution Priority
+
+For each field:
+
+1. `*Value()` method
+2. `$*Column` property
+3. Default column name
+
+Methods always take precedence over properties.
+
+#### Supported Override Methods
+
+Define these **on your model** when the value is computed or derived. Organized by context:
+
+##### Common Methods
+
+| Method                | Return Type     | When to use               |
+|-----------------------|-----------------|---------------------------|
+| `titleValue()`        | `?string`       | Computed or dynamic title |
+| `descriptionValue()`  | `?string`       | Generated description     |
+| `categoryValue()`     | `?string`       | Derived category          |
+| `imageValue()`        | `?string`       | Media URL                 |
+| `authorValue()`       | `?string`       | Relation-based author     |
+| `authorUrlValue()`    | `?string`       | Author profile link       |
+| `publisherValue()`    | `?string`       | Brand or company name     |
+| `publisherUrlValue()` | `?string`       | Publisher homepage        |
+| `tagsValue()`         | `array<string>` | Normalized tags           |
+| `urlValue()`          | `?string`       | The page URL              |
+| `publishedAtValue()`  | `?Carbon`       | Computed publish date     |
+| `pageTypeValue()`     | `?string`       | Custom page type          |
+
+##### Product-Specific Methods
+
+| Method                | Return Type | When to use          |
+|-----------------------|-------------|----------------------|
+| `brandValue()`        | `?string`   | Product brand        |
+| `priceValue()`        | `?float`    | Product price        |
+| `currencyValue()`     | `?string`   | Price currency       |
+| `availabilityValue()` | `bool`      | Product availability |
+| `skuValue()`          | `?string`   | Product SKU          |
+
+##### Page-Specific Methods
+
+| Method             | Return Type | When to use                         |
+|--------------------|-------------|-------------------------------------|
+| `pageTypeValue()`  | `?string`   | Type of page (landing, about, etc.) |
+
+##### Example
 
 ```php
-use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
-use AchyutN\LaravelSEO\Data\Breadcrumb;
-
-class Post extends Model
+class Product extends Model
 {
     use InteractsWithSEO;
 
-    protected string $titleColumn = 'seo_title';
-
-    protected function descriptionValue(): ?string
+    protected function priceValue(): ?float
     {
-        return substr($this->content, 0, 150);
+        return $this->price;
     }
 
-    public function breadcrumbs(): array
+    protected function availabilityValue(): bool
     {
-        return [
-            new Breadcrumb(label: 'Home', url: route('home')),
-            new Breadcrumb(label: $this->title, url: route('blog.show', $this)),
-        ];
+        return $this->is_available;
     }
 }
 ```
+
+#### Supported Properties
+
+Define these **on your Eloquent model** to change which column is used. Organized by context:
+
+##### Common Properties
+
+| Property              | Default         | Purpose             |
+|-----------------------|-----------------|---------------------|
+| `$titleColumn`        | `title`         | Page title          |
+| `$descriptionColumn`  | `description`   | Meta description    |
+| `$categoryColumn`     | `category`      | Content category    |
+| `$imageColumn`        | `image`         | Open Graph image    |
+| `$authorColumn`       | `author`        | Author name         |
+| `$authorUrlColumn`    | `author_url`    | Author profile URL  |
+| `$publisherColumn`    | `publisher`     | Publisher name      |
+| `$publisherUrlColumn` | `publisher_url` | Publisher URL       |
+| `$tagsColumn`         | `tags`          | Tags or keywords    |
+| `$urlColumn`          | `url`           | The page URL        |
+| `$publishedAtColumn`  | `published_at`  | Publish date        |
+| `$pageTypeColumn`     | `page_type`     | Page type           |
+
+##### Product-Specific Properties
+
+| Property               | Default         | Purpose              |
+|------------------------|-----------------|----------------------|
+| `$brandColumn`         | `brand`         | Product brand        |
+| `$priceColumn`         | `price`         | Product price        |
+| `$currencyColumn`      | `currency`      | Price currency       |
+| `$availabilityColumn`  | `is_available`  | Product availability |
+| `$skuColumn`           | `sku`           | Product SKU          |
+
+##### Example
+
+```php
+class Product extends Model
+{
+    use InteractsWithSEO;
+
+    protected string $priceColumn = 'product_price';
+    protected string $brandColumn = 'product_brand';
+}
+```
+
+#### Notes
+
+- All overrides are optional
+- Do not define both a property and a method unless intentional
+- IDEs and static analyzers understand all extension points via PHPDoc
 
 ## License
 
