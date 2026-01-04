@@ -2,9 +2,13 @@
 
 namespace AchyutN\LaravelSEO\Contracts;
 
+use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 
 interface HasMarkup
 {
-    public function buildSchema(SchemaCollection $schema): SchemaCollection;
+    public function buildSchema(
+        SchemaCollection $schema,
+        ResolvedSEO $seo
+    ): SchemaCollection;
 }

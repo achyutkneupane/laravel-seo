@@ -10,8 +10,6 @@ use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use AchyutN\LaravelSEO\Models\SEO;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Support\Collection;
-use RalphJSmit\Laravel\SEO\Schema\ArticleSchema;
 use RalphJSmit\Laravel\SEO\Schema\BreadcrumbListSchema;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
@@ -63,12 +61,12 @@ trait InteractsWithSEO
         return [];
     }
 
-    protected function buildDynamicSchema(): SchemaCollection
+    protected function buildDynamicSchema(ResolvedSEO $resolvedSEO): SchemaCollection
     {
         $schema = SchemaCollection::make();
 
         if ($this instanceof HasMarkup) {
-            return $this->buildSchema($schema);
+            return $this->buildSchema($schema, $resolvedSEO);
         }
 
         return $schema;
@@ -115,27 +113,7 @@ trait InteractsWithSEO
     {
         $resolvedSEO = $this->resolveSEO();
 
-        $schema = SchemaCollection::make()
-            ->add(fn (): array => [
-                '@context' => 'https://schema.org',
-                '@type' => 'BlogPosting',
-                'headline' => $resolvedSEO->title,
-                'description' => $resolvedSEO->description,
-                'url' => $resolvedSEO->url,
-                'thumbnailUrl' => $resolvedSEO->image,
-                'articleSection' => $resolvedSEO->category,
-                'datePublished' => $resolvedSEO->publishedAt,
-                'inLanguage' => 'en',
-                'author' => $resolvedSEO->authorAndPublisher(),
-            ])
-            ->addArticle(fn (ArticleSchema $articleSchema): ArticleSchema => $articleSchema->markup(fn (Collection $markup): Collection => $markup
-                ->put('headline', $resolvedSEO->title)
-                ->put('description', $resolvedSEO->description)
-                ->put('url', $resolvedSEO->url)
-                ->put('thumbnailUrl', $resolvedSEO->image)
-                ->put('author', $resolvedSEO->authorAndPublisher())
-                ->put('datePublished', $resolvedSEO->publishedAt)
-            ));
+        $schema = $this->buildDynamicSchema($resolvedSEO);
 
         if (count($this->breadcrumbs()) > 0) {
             $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
