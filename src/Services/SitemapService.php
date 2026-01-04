@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace AchyutN\LaravelSEO\Services;
 
 use AchyutN\LaravelSEO\Models\SEO;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Response;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\LazyCollection;
 
 final class SitemapService
 {
+    public function __construct(
+        public SEOService $service
+    ) {
+        //
+    }
+
     public function toXML(): Response
     {
         /** @var LazyCollection<int, SEO> $seoModels */
@@ -29,7 +33,13 @@ final class SitemapService
                 continue;
             }
 
-            [$url, $imageUrl, $title, $description, $updatedAt] = $this->getModelValues($model);
+            [
+                'url' => $url,
+                'imageUrl' => $imageUrl,
+                'title' => $title,
+                'description' => $description,
+                'updatedAt' => $updatedAt,
+            ] = $this->service->getModelValues($model);
 
             if ($url === null) {
                 continue;
@@ -72,7 +82,9 @@ final class SitemapService
             }
 
             /** @phpstan-var string|null $url */
-            [$url] = $this->getModelValues($model);
+            [
+                'url' => $url
+            ] = $this->service->getModelValues($model);
 
             if ($url !== null) {
                 $txt[] = $url;
@@ -81,23 +93,6 @@ final class SitemapService
 
         return response(implode("\n", $txt))
             ->header('Content-Type', 'text/plain; charset=UTF-8');
-    }
-
-    /** @return array{0: string|null, 1: string|null, 2: string|null, 3: string|null, 4: Carbon|null} */
-    private function getModelValues(Model $model): array
-    {
-        /** @var string|null $url */
-        $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
-        /** @var string|null $imageUrl */
-        $imageUrl = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
-        /** @var string|null $title */
-        $title = method_exists($model, 'getTitleValue') ? $model->getTitleValue() : null;
-        /** @var string|null $description */
-        $description = method_exists($model, 'getDescriptionValue') ? $model->getDescriptionValue() : null;
-        /** @var Carbon $updatedAt */
-        $updatedAt = method_exists($model, 'getModifiedAtValue') ? $model->getModifiedAtValue() : null;
-
-        return [$url, $imageUrl, $title, $description, $updatedAt];
     }
 
     /** @return LazyCollection<int, SEO> */

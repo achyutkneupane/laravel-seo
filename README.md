@@ -59,6 +59,22 @@ class Post extends Model
 This will automatically use the default columns (title, description, etc).
 You can also auto-generate [breadcrumbs](#breadcrumbs) and [schema markup](#schema-types) for your model by implementing the respective methods or traits.
 
+### Generate SEO Entries
+
+After adding the trait to your model, you need to generate SEO entries for existing records.
+You can do this by running the following Artisan command:
+
+```bash
+php artisan seo:generate
+```
+
+It also supports re-generating SEO entries for models that already have SEO data.
+You can use the `--regenerate` flag to update existing entries:
+
+```bash
+php artisan seo:generate --regenerate
+```
+
 ### Schema Types
 
 This package supports multiple schema types using traits:
