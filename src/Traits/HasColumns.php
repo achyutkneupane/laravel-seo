@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $tagsColumn
  * @property string $urlColumn
  * @property string $publishedAtColumn
+ * @property string $pageTypeColumn
  *
  * @method string|null titleValue()
  * @method string|null descriptionValue()
@@ -30,6 +31,7 @@ use Illuminate\Support\Carbon;
  * @method array<int, string>|null tagsValue()
  * @method string|null urlValue()
  * @method Carbon|null publishedAtValue()
+ * @method string|null pageTypeValue()
  */
 trait HasColumns
 {
@@ -132,6 +134,15 @@ trait HasColumns
         return data_get($this, $this->publishedAtColumn());
     }
 
+    public function getPageTypeValue(): ?string
+    {
+        if (method_exists($this, 'pageTypeValue') && $this->pageTypeValue() !== null) {
+            return $this->pageTypeValue();
+        }
+
+        return data_get($this, $this->pageTypeColumn());
+    }
+
     protected function titleColumn(): string
     {
         return property_exists($this, 'titleColumn')
@@ -207,5 +218,12 @@ trait HasColumns
         return property_exists($this, 'publishedAtColumn')
             ? $this->publishedAtColumn
             : 'published_at';
+    }
+
+    protected function pageTypeColumn(): string
+    {
+        return property_exists($this, 'pageTypeColumn')
+            ? $this->pageTypeColumn
+            : 'page_type';
     }
 }
