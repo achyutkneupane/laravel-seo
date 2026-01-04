@@ -13,11 +13,14 @@ use ReflectionClass;
 
 class GenerateSEO extends Command
 {
-    protected $signature = 'seo:generate';
+    protected $signature = 'seo:generate {--regenerate : Regenerate SEO entries even if they exist}';
     protected $description = 'Generate missing SEO entries for all models that uses InteractsWithSEO trait';
 
     public function handle(): void
     {
+        /** @var bool $regenerate */
+        $regenerate = $this->option('regenerate') ?? false;
+
         $models = $this->discoverModels();
 
         if (empty($models)) {
@@ -28,9 +31,9 @@ class GenerateSEO extends Command
         foreach ($models as $modelClass) {
             $this->info("Processing model: {$modelClass}");
 
-            $modelClass::query()->chunkById(100, function ($records) {
+            $modelClass::query()->chunkById(100, function ($records) use ($regenerate) {
                 foreach ($records as $instance) {
-                    if ($instance->seo) {
+                    if (!$regenerate && $instance->seo) {
                         continue;
                     }
 
