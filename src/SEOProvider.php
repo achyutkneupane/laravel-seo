@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO;
 
+use AchyutN\LaravelSEO\Commands\RegenerateSEO;
 use AchyutN\LaravelSEO\Services\SitemapService;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
@@ -21,6 +22,7 @@ final class SEOProvider extends BaseServiceProvider
         ], 'laravel-seo');
 
         $this->generateRoutes();
+        $this->registerCommands();
     }
 
     public function register(): void
@@ -34,5 +36,14 @@ final class SEOProvider extends BaseServiceProvider
     {
         Route::get('/sitemap.xml', fn () => app(SitemapService::class)->toXML())->name('sitemap.xml');
         Route::get('/sitemap.txt', fn () => app(SitemapService::class)->toTXT());
+    }
+
+    private function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                RegenerateSEO::class,
+            ]);
+        }
     }
 }
