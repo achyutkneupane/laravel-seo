@@ -53,7 +53,7 @@ final class ResolvedSEO
     {
         return [
             '@type' => 'Brand',
-            'name' => $this->brand,
+            'name' => $this->brand ?? $this->publisher,
             'url' => null,
         ];
     }
