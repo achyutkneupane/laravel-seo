@@ -201,6 +201,7 @@ Define these **on your model** when the value is computed or derived. Organized 
 | `tagsValue()`         | `array<string>` | Normalized tags           |
 | `urlValue()`          | `?string`       | The page URL              |
 | `publishedAtValue()`  | `?Carbon`       | Computed publish date     |
+| `modifiedAtValue()`   | `?Carbon`       | Computed updated date     |
 | `pageTypeValue()`     | `?string`       | Custom page type          |
 
 ##### Product-Specific Methods
@@ -256,7 +257,8 @@ Define these **on your Eloquent model** to change which column is used. Organize
 | `$publisherUrlColumn` | `publisher_url` | Publisher URL       |
 | `$tagsColumn`         | `tags`          | Tags or keywords    |
 | `$urlColumn`          | `url`           | The page URL        |
-| `$publishedAtColumn`  | `published_at`  | Publish date        |
+| `$publishedAtColumn`  | `created_at`    | Publish date        |
+| `$modifiedAtColumn`   | `updated_at`    | Updated date        |
 | `$pageTypeColumn`     | `page_type`     | Page type           |
 
 ##### Product-Specific Properties
