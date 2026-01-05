@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Data;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
@@ -15,6 +16,8 @@ final class ResolvedSEO
      * @param  array<int, string>  $tags
      */
     public function __construct(
+        private readonly Model $model,
+
         public string $title,
         public ?string $description,
         public ?string $url,
@@ -31,11 +34,14 @@ final class ResolvedSEO
         public ?string $pageType,
 
         public ?string $brand,
-        public ?string $price,
+        public ?float $price,
+        public ?float $discountPrice,
         public ?string $currency,
         public bool $isAvailable = false,
         public ?string $sku = null,
-    ) {}
+    ) {
+        //
+    }
 
     /** @return AuthorArray[] */
     public function authorArray(): array
@@ -69,6 +75,16 @@ final class ResolvedSEO
         ];
 
         return [$publisherData];
+    }
+
+    public function hasDiscount(): bool
+    {
+        return $this->discountPrice !== null && $this->price !== null && $this->discountPrice < $this->price;
+    }
+
+    public function getModel(): Model
+    {
+        return $this->model;
     }
 
     /** @return AuthorArray[] */

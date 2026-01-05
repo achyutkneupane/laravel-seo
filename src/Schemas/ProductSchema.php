@@ -21,20 +21,41 @@ trait ProductSchema
                 'image' => $resolvedSEO->image,
                 'brand' => $resolvedSEO->brandArray(),
                 'sku' => $resolvedSEO->sku,
-                'offers' => [
-                    '@type' => 'Offer',
-                    'priceCurrency' => $resolvedSEO->currency,
-                    'price' => $resolvedSEO->price,
-                    'availability' => sprintf(
-                        'https://schema.org/%s',
-                        $resolvedSEO->isAvailable ? 'InStock' : 'OutOfStock'
-                    ),
-                ],
+                'offers' => $this->getPriceArray($resolvedSEO),
             ]);
     }
 
     protected function productSchemaType(): string
     {
         return 'Product';
+    }
+
+    private function getPriceArray(ResolvedSEO $resolvedSEO): array
+    {
+        $priceSpecifications = [
+            [
+                '@type' => 'UnitPriceSpecification',
+                'priceCurrency' => $resolvedSEO->currency,
+                'price' => $resolvedSEO->price,
+            ],
+        ];
+
+        if ($resolvedSEO->hasDiscount() && $resolvedSEO->discountPrice !== null) {
+            $priceSpecifications[] = [
+                '@type' => 'UnitPriceSpecification',
+                'priceType' => 'https://schema.org/StrikethroughPrice',
+                'price' => $resolvedSEO->discountPrice,
+                'priceCurrency' => $resolvedSEO->currency,
+            ];
+        }
+
+        return [
+            '@type' => 'Offer',
+            'availability' => sprintf(
+                'https://schema.org/%s',
+                $resolvedSEO->isAvailable ? 'InStock' : 'OutOfStock'
+            ),
+            'priceSpecification' => $priceSpecifications,
+        ];
     }
 }

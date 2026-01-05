@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $pageTypeColumn
  * @property string $brandColumn
  * @property string $priceColumn
+ * @property string $discountPriceColumn
  * @property string $currencyColumn
  * @property string $availabilityColumn
  * @property string $skuColumn
@@ -41,6 +42,7 @@ use Illuminate\Support\Carbon;
  * @method string|null pageTypeValue()
  * @method string|null brandValue()
  * @method float|null priceValue()
+ * @method float|null discountPriceValue()
  * @method string|null currencyValue()
  * @method bool availabilityValue()
  * @method string|null skuValue()
@@ -182,6 +184,15 @@ trait HasColumns
         return data_get($this, $this->priceColumn());
     }
 
+    public function getdiscountPriceValue(): ?float
+    {
+        if (method_exists($this, 'discountPriceValue') && $this->discountPriceValue() !== null) {
+            return $this->discountPriceValue();
+        }
+
+        return data_get($this, $this->discountPriceColumn());
+    }
+
     public function getCurrencyValue(): ?string
     {
         if (method_exists($this, 'currencyValue') && $this->currencyValue() !== null) {
@@ -312,6 +323,13 @@ trait HasColumns
         return property_exists($this, 'priceColumn')
             ? $this->priceColumn
             : 'price';
+    }
+
+    protected function discountPriceColumn(): string
+    {
+        return property_exists($this, 'discountPriceColumn')
+            ? $this->discountPriceColumn
+            : 'discount_price';
     }
 
     protected function currencyColumn(): string
