@@ -54,6 +54,11 @@ use RalphJSmit\Laravel\SEO\Models\SEO as Model;
  */
 final class SEO extends Model
 {
+    public function getConnectionName(): string
+    {
+        return config('seo.database', config('database.default'));
+    }
+
     protected function casts(): array
     {
         return [
