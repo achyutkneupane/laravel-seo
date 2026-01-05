@@ -12,7 +12,7 @@ trait ProductSchema
     public function buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO): SchemaCollection
     {
         return $schema
-            ->add(fn(): array => [
+            ->add(fn (): array => [
                 '@context' => 'https://schema.org',
                 '@type' => $resolvedSEO->pageType ?? $this->productSchemaType(),
                 'name' => $resolvedSEO->title,
@@ -25,6 +25,11 @@ trait ProductSchema
             ]);
     }
 
+    protected function productSchemaType(): string
+    {
+        return 'Product';
+    }
+
     private function getPriceArray(ResolvedSEO $resolvedSEO): array
     {
         $priceSpecifications = [
@@ -32,7 +37,7 @@ trait ProductSchema
                 '@type' => 'UnitPriceSpecification',
                 'priceCurrency' => $resolvedSEO->currency,
                 'price' => $resolvedSEO->price,
-            ]
+            ],
         ];
 
         if ($resolvedSEO->hasDiscount() && $resolvedSEO->discountPrice !== null) {
@@ -52,10 +57,5 @@ trait ProductSchema
             ),
             'priceSpecification' => $priceSpecifications,
         ];
-    }
-
-    protected function productSchemaType(): string
-    {
-        return 'Product';
     }
 }
