@@ -181,7 +181,13 @@ trait HasColumns
             return $this->priceValue();
         }
 
-        return data_get($this, $this->priceColumn());
+        $price = data_get($this, $this->priceColumn());
+
+        if (is_numeric($price)) {
+            return (float) $price;
+        }
+
+        return null;
     }
 
     public function getdiscountPriceValue(): ?float
@@ -190,7 +196,13 @@ trait HasColumns
             return $this->discountPriceValue();
         }
 
-        return data_get($this, $this->discountPriceColumn());
+        $discountPrice = data_get($this, $this->discountPriceColumn());
+
+        if (is_numeric($discountPrice)) {
+            return (float) $discountPrice;
+        }
+
+        return null;
     }
 
     public function getCurrencyValue(): ?string
