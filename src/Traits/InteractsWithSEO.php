@@ -123,9 +123,10 @@ trait InteractsWithSEO
         $fallbackImage = $this->getImageValue() ?? null;
         $image = $seoImage ?? $fallbackImage;
 
-        $imageURL = preg_match('/^https?:\/\//', (string)$image) ? (string)$image : ($image ? '/storage/'.$image : null);
+        $imageURL = preg_match('/^https?:\/\//', (string) $image) ? (string) $image : ($image ? '/storage/'.$image : null);
 
         return new ResolvedSEO(
+            model: $this,
             title: $title,
             description: $description,
             url: $url,
@@ -140,7 +141,8 @@ trait InteractsWithSEO
             modifiedAt: $this->getModifiedAtValue(),
             pageType: $this->getPageTypeValue(),
             brand: $this->getBrandValue(),
-            price: (string) $this->getPriceValue(),
+            price: $this->getPriceValue(),
+            discountPrice: $this->getdiscountPriceValue(),
             currency: $this->getCurrencyValue(),
             isAvailable: $this->getAvailabilityValue(),
             sku: $this->getSkuValue(),

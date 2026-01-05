@@ -13,34 +13,33 @@ use Illuminate\Support\Carbon;
 final class ResolvedSEO
 {
     /**
-     * @param array<int, string> $tags
+     * @param  array<int, string>  $tags
      */
     public function __construct(
         private readonly Model $model,
 
-        public string          $title,
-        public ?string         $description,
-        public ?string         $url,
-        public ?string         $category,
-        public array           $tags,
-        public string          $author,
-        public ?string         $authorUrl,
-        public string          $publisher,
-        public ?string         $publisherUrl,
-        public ?string         $image,
-        public ?Carbon         $publishedAt,
-        public ?Carbon         $modifiedAt,
+        public string $title,
+        public ?string $description,
+        public ?string $url,
+        public ?string $category,
+        public array $tags,
+        public string $author,
+        public ?string $authorUrl,
+        public string $publisher,
+        public ?string $publisherUrl,
+        public ?string $image,
+        public ?Carbon $publishedAt,
+        public ?Carbon $modifiedAt,
 
-        public ?string         $pageType,
+        public ?string $pageType,
 
-        public ?string         $brand,
-        public ?string         $price,
-        public ?string         $discountPrice,
-        public ?string         $currency,
-        public bool            $isAvailable = false,
-        public ?string         $sku = null,
-    )
-    {
+        public ?string $brand,
+        public ?float $price,
+        public ?float $discountPrice,
+        public ?string $currency,
+        public bool $isAvailable = false,
+        public ?string $sku = null,
+    ) {
         //
     }
 
