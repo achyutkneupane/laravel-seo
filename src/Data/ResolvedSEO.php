@@ -13,31 +13,36 @@ use Illuminate\Support\Carbon;
 final class ResolvedSEO
 {
     /**
-     * @param  array<int, string>  $tags
+     * @param array<int, string> $tags
      */
     public function __construct(
-        public string $title,
-        public ?string $description,
-        public ?string $url,
-        public ?string $category,
-        public array $tags,
-        public string $author,
-        public ?string $authorUrl,
-        public string $publisher,
-        public ?string $publisherUrl,
-        public ?string $image,
-        public ?Carbon $publishedAt,
-        public ?Carbon $modifiedAt,
+        private readonly Model $model,
 
-        public ?string $pageType,
+        public string          $title,
+        public ?string         $description,
+        public ?string         $url,
+        public ?string         $category,
+        public array           $tags,
+        public string          $author,
+        public ?string         $authorUrl,
+        public string          $publisher,
+        public ?string         $publisherUrl,
+        public ?string         $image,
+        public ?Carbon         $publishedAt,
+        public ?Carbon         $modifiedAt,
 
-        public ?string $brand,
-        public ?string $price,
-        public ?string $discountPrice,
-        public ?string $currency,
-        public bool $isAvailable = false,
-        public ?string $sku = null,
-    ) {}
+        public ?string         $pageType,
+
+        public ?string         $brand,
+        public ?string         $price,
+        public ?string         $discountPrice,
+        public ?string         $currency,
+        public bool            $isAvailable = false,
+        public ?string         $sku = null,
+    )
+    {
+        //
+    }
 
     /** @return AuthorArray[] */
     public function authorArray(): array
@@ -76,6 +81,11 @@ final class ResolvedSEO
     public function hasDiscount(): bool
     {
         return $this->discountPrice !== null && $this->price !== null && $this->discountPrice < $this->price;
+    }
+
+    public function getModel(): Model
+    {
+        return $this->model;
     }
 
     /** @return AuthorArray[] */
