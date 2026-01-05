@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Data;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
@@ -32,6 +33,7 @@ final class ResolvedSEO
 
         public ?string $brand,
         public ?string $price,
+        public ?string $discountPrice,
         public ?string $currency,
         public bool $isAvailable = false,
         public ?string $sku = null,
@@ -69,6 +71,11 @@ final class ResolvedSEO
         ];
 
         return [$publisherData];
+    }
+
+    public function hasDiscount(): bool
+    {
+        return $this->discountPrice !== null && $this->price !== null && $this->discountPrice < $this->price;
     }
 
     /** @return AuthorArray[] */
