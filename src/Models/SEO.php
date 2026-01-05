@@ -56,6 +56,7 @@ final class SEO extends Model
 {
     public function getConnectionName(): string
     {
+        /** @phpstan-var string */
         return config('seo.database', config('database.default'));
     }
 
