@@ -222,13 +222,14 @@ Define these **on your model** when the value is computed or derived. Organized 
 
 ##### Product-Specific Methods
 
-| Method                | Return Type | When to use          |
-|-----------------------|-------------|----------------------|
-| `brandValue()`        | `?string`   | Product brand        |
-| `priceValue()`        | `?float`    | Product price        |
-| `currencyValue()`     | `?string`   | Price currency       |
-| `availabilityValue()` | `bool`      | Product availability |
-| `skuValue()`          | `?string`   | Product SKU          |
+| Method                  | Return Type | When to use          |
+|-------------------------|-------------|----------------------|
+| `brandValue()`          | `?string`   | Product brand        |
+| `priceValue()`          | `?float`    | Product price        |
+| `discountPriceValue()`  | `?float`    | Discounted price     |
+| `currencyValue()`       | `?string`   | Price currency       |
+| `availabilityValue()`   | `bool`      | Product availability |
+| `skuValue()`            | `?string`   | Product SKU          |
 
 ##### Page-Specific Methods
 
@@ -279,13 +280,14 @@ Define these **on your Eloquent model** to change which column is used. Organize
 
 ##### Product-Specific Properties
 
-| Property               | Default         | Purpose              |
-|------------------------|-----------------|----------------------|
-| `$brandColumn`         | `brand`         | Product brand        |
-| `$priceColumn`         | `price`         | Product price        |
-| `$currencyColumn`      | `currency`      | Price currency       |
-| `$availabilityColumn`  | `is_available`  | Product availability |
-| `$skuColumn`           | `sku`           | Product SKU          |
+| Property               | Default           | Purpose              |
+|------------------------|-------------------|----------------------|
+| `$brandColumn`         | `brand`           | Product brand        |
+| `$priceColumn`         | `price`           | Product price        |
+| `$discountPriceColumn` | `discount_price`  | Discounted price     |
+| `$currencyColumn`      | `currency`        | Price currency       |
+| `$availabilityColumn`  | `is_available`    | Product availability |
+| `$skuColumn`           | `sku`             | Product SKU          |
 
 ##### Example
 
