@@ -7,21 +7,21 @@ namespace AchyutN\LaravelSEO\Data;
 final readonly class Breadcrumb
 {
     public function __construct(
-        private string $label,
-        private string $url,
+        private ?string $label,
+        private ?string $url,
     ) {}
 
     public function getLabel(): string
     {
-        return $this->label;
+        return $this->label ?? '';
     }
 
-    public function getUrl(): string
+    public function getUrl(): ?string
     {
         return $this->url;
     }
 
-    /** @return array<string, string> */
+    /** @return array<string, string|null> */
     public function toArray(): array
     {
         return [
