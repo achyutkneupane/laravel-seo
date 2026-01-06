@@ -21,7 +21,7 @@ final readonly class Breadcrumb
         return $this->url;
     }
 
-    /** @return array<string, string> */
+    /** @return array<string, string|null> */
     public function toArray(): array
     {
         return [
