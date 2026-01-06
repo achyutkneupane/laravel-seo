@@ -107,17 +107,17 @@ trait InteractsWithSEO
     {
         $seo = $this->seo;
 
-        $title = $seo->meta_title ?? $this->getTitleValue() ?? 'Untitled';
-        $description = $seo->meta_description ?? $this->getDescriptionValue() ?? 'No description available.';
+        $title = $seo->meta_title ?? $this->getTitleValue() ?? '';
+        $description = $seo->meta_description ?? $this->getDescriptionValue();
         $url = $seo->canonical ?? $this->getUrlValue() ?? null;
         $category = $this->getCategoryValue() ?? 'Blog';
         $tags = $seo->meta_keywords ?? $this->getTagsValue() ?? [];
 
-        $author = $seo->author ?? $this->getAuthorValue() ?? 'Unknown Author';
+        $author = $seo->author ?? $this->getAuthorValue();
         $authorUrl = $this->getAuthorUrlValue() ?? null;
 
-        $publisher = $seo->publisher ?? $this->getPublisherValue() ?? config('app.name');
-        $publisherUrl = $this->getPublisherUrlValue() ?? null;
+        $publisher = $seo->publisher ?? $this->getPublisherValue() ?? $this->getAuthorValue();
+        $publisherUrl = $this->getPublisherUrlValue() ?? $this->getAuthorUrlValue();
 
         $seoImage = $seo->og_image ?? null;
         $fallbackImage = $this->getImageValue() ?? null;
