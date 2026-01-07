@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AchyutN\LaravelSEO\Services;
 
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
@@ -17,8 +18,8 @@ final class SEOService
     {
         /** @var string|null $url */
         $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
-        /** @var string|null $imageUrl */
-        $imageUrl = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
+        /** @var string|null $imagePath */
+        $imagePath = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
         /** @var string|null $title */
         $title = method_exists($model, 'getTitleValue') ? $model->getTitleValue() : null;
         /** @var string|null $description */
@@ -32,9 +33,33 @@ final class SEOService
         /** @var string|null $publisher */
         $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
 
+        /** @var string $imageURL */
+        $imageURL = pipeline()
+            ->send($imagePath)
+            ->through([
+                function (?string $imagePath, Closure $next): mixed {
+                    if (! filled($imagePath)) {
+                        return null;
+                    }
+
+                    if (preg_match('/^https?:\/\//', $imagePath)) {
+                        return $imagePath;
+                    }
+
+                    return $next($imagePath);
+                },
+                function (string $imagePath): string {
+                    /** @phpstan-var string $url */
+                    $url = config('app.url');
+
+                    return $url.'/storage/'.$imagePath;
+                },
+            ])
+            ->thenReturn();
+
         return [
             'url' => $url,
-            'imageUrl' => $imageUrl,
+            'imageUrl' => $imageURL,
             'title' => $title,
             'description' => $description,
             'updatedAt' => $updatedAt,
