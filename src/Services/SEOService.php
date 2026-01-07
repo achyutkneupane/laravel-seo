@@ -17,8 +17,8 @@ final class SEOService
     {
         /** @var string|null $url */
         $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
-        /** @var string|null $imageUrl */
-        $imageUrl = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
+        /** @var string|null $imagePath */
+        $imagePath = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
         /** @var string|null $title */
         $title = method_exists($model, 'getTitleValue') ? $model->getTitleValue() : null;
         /** @var string|null $description */
@@ -32,9 +32,11 @@ final class SEOService
         /** @var string|null $publisher */
         $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
 
+        $imageURL = preg_match('/^https?:\/\//', (string) $imagePath) ? (string) $imagePath : ($imagePath ? config('app.url').'/storage/'.$imagePath : null);
+
         return [
             'url' => $url,
-            'imageUrl' => $imageUrl,
+            'imageUrl' => $imageURL,
             'title' => $title,
             'description' => $description,
             'updatedAt' => $updatedAt,
