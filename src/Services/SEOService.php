@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AchyutN\LaravelSEO\Services;
 
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
@@ -32,7 +33,29 @@ final class SEOService
         /** @var string|null $publisher */
         $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
 
-        $imageURL = preg_match('/^https?:\/\//', (string) $imagePath) ? (string) $imagePath : ($imagePath ? config('app.url').'/storage/'.$imagePath : null);
+        /** @var string $imageURL */
+        $imageURL = pipeline()
+            ->send($imagePath)
+            ->through([
+                function (?string $imagePath, Closure $next): mixed {
+                    if (! filled($imagePath)) {
+                        return null;
+                    }
+
+                    if (preg_match('/^https?:\/\//', $imagePath)) {
+                        return $imagePath;
+                    }
+
+                    return $next($imagePath);
+                },
+                function (string $imagePath): string {
+                    /** @phpstan-var string $url */
+                    $url = config('app.url');
+
+                    return $url.'/storage/'.$imagePath;
+                },
+            ])
+            ->thenReturn();
 
         return [
             'url' => $url,
