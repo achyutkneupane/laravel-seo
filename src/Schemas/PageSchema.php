@@ -16,16 +16,43 @@ trait PageSchema
         $resolvedSEO = $this->resolveSEO();
 
         return $schema
-            ->add(fn (): array => [
-                '@context' => 'https://schema.org',
-                '@type' => $resolvedSEO->pageType ?? $this->pageSchemaType(),
-                'name' => $resolvedSEO->title,
-                'description' => $resolvedSEO->description,
-                'url' => $resolvedSEO->url,
-                'inLanguage' => 'en',
-                'author' => $resolvedSEO->authorArray(),
-                'publisher' => $resolvedSEO->publisherArray(),
-            ]);
+//            ->add(fn (): array => [
+//                '@context' => 'https://schema.org',
+//                '@type' => $resolvedSEO->pageType ?? $this->pageSchemaType(),
+//                'name' => $resolvedSEO->title,
+//                'description' => $resolvedSEO->description,
+//                'url' => $resolvedSEO->url,
+//                'inLanguage' => 'en',
+//                'author' => $resolvedSEO->authorArray(),
+//                'publisher' => $resolvedSEO->publisherArray(),
+//            ]);
+        ->add(fn (): array => collect()
+                ->put('@context', 'https://schema.org')
+                ->put('@type', $resolvedSEO->pageType ?? $this->pageSchemaType())
+                ->when(
+                    $resolvedSEO->title,
+                    fn ($collection) => $collection->put('name', $resolvedSEO->title)
+                )
+                ->when(
+                    $resolvedSEO->description,
+                    fn ($collection) => $collection->put('description', $resolvedSEO->description)
+                )
+                ->when(
+                    $resolvedSEO->url,
+                    fn ($collection) => $collection->put('url', $resolvedSEO->url)
+                        ->put('@id', $resolvedSEO->url)
+                )
+                ->put('inLanguage', 'en')
+                ->when(
+                    $resolvedSEO->authorArray(),
+                    fn ($collection) => $collection->put('author', $resolvedSEO->authorArray())
+                )
+                ->when(
+                    $resolvedSEO->publisherArray(),
+                    fn ($collection) => $collection->put('publisher', $resolvedSEO->publisherArray())
+                )
+                ->toArray()
+            );
     }
 
     protected function pageSchemaType(): string

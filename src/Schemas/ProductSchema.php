@@ -16,17 +16,37 @@ trait ProductSchema
         $resolvedSEO = $this->resolveSEO();
 
         return $schema
-            ->add(fn (): array => [
-                '@context' => 'https://schema.org',
-                '@type' => $resolvedSEO->pageType ?? $this->productSchemaType(),
-                'name' => $resolvedSEO->title,
-                'description' => $resolvedSEO->description,
-                'url' => $resolvedSEO->url,
-                'image' => $resolvedSEO->image,
-                'brand' => $resolvedSEO->brandArray(),
-                'sku' => $resolvedSEO->sku,
-                'offers' => $this->getPriceArray($resolvedSEO),
-            ]);
+                ->add(fn (): array => collect()
+                ->put('@context', 'https://schema.org')
+                ->put('@type', $resolvedSEO->pageType ?? $this->productSchemaType())
+                ->when(
+                    $resolvedSEO->title,
+                    fn ($collection) => $collection->put('name', $resolvedSEO->title)
+                )
+                ->when(
+                    $resolvedSEO->description,
+                    fn ($collection) => $collection->put('description', $resolvedSEO->description)
+                )
+                ->when(
+                    $resolvedSEO->url,
+                    fn ($collection) => $collection->put('url', $resolvedSEO->url)
+                        ->put('@id', $resolvedSEO->url)
+                )
+                ->when(
+                    $resolvedSEO->image,
+                    fn ($collection) => $collection->put('image', $resolvedSEO->image)
+                )
+                ->when(
+                    $resolvedSEO->brand,
+                    fn ($collection) => $collection->put('brand', $resolvedSEO->brandArray())
+                )
+                ->when(
+                    $resolvedSEO->sku,
+                    fn ($collection) => $collection->put('sku', $resolvedSEO->sku)
+                )
+                ->put('offers', $this->getPriceArray($resolvedSEO))
+                ->toArray()
+            );
     }
 
     protected function productSchemaType(): string
@@ -36,30 +56,32 @@ trait ProductSchema
 
     private function getPriceArray(ResolvedSEO $resolvedSEO): array
     {
-        $priceSpecifications = [
-            [
-                '@type' => 'UnitPriceSpecification',
-                'priceCurrency' => $resolvedSEO->currency,
-                'price' => $resolvedSEO->price,
-            ],
-        ];
+        $priceSpecifications = collect()
+            ->put('@type', 'UnitPriceSpecification')
+            ->put('priceCurrency', $resolvedSEO->currency)
+            ->put('price', $resolvedSEO->price);
 
         if ($resolvedSEO->hasDiscount() && $resolvedSEO->discountPrice !== null) {
-            $priceSpecifications[] = [
-                '@type' => 'UnitPriceSpecification',
-                'priceType' => 'https://schema.org/StrikethroughPrice',
-                'price' => $resolvedSEO->discountPrice,
-                'priceCurrency' => $resolvedSEO->currency,
-            ];
+            $priceSpecifications = collect()
+                ->push($priceSpecifications)
+                ->push(collect()
+                    ->put('@type', 'UnitPriceSpecification')
+                    ->put('priceType', 'https://schema.org/StrikethroughPrice')
+                    ->put('price', $resolvedSEO->discountPrice)
+                    ->put('priceCurrency', $resolvedSEO->currency)
+                );
         }
 
-        return [
-            '@type' => 'Offer',
-            'availability' => sprintf(
-                'https://schema.org/%s',
-                $resolvedSEO->isAvailable ? 'InStock' : 'OutOfStock'
-            ),
-            'priceSpecification' => $priceSpecifications,
-        ];
+        return collect()
+            ->put('@type', 'Offer')
+            ->put(
+                'availability',
+                sprintf(
+                    'https://schema.org/%s',
+                    $resolvedSEO->isAvailable ? 'InStock' : 'OutOfStock'
+                )
+            )
+            ->put('priceSpecification', $priceSpecifications->toArray())
+            ->toArray();
     }
 }
