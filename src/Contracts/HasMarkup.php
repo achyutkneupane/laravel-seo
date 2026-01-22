@@ -17,7 +17,8 @@ interface HasMarkup
      * @return SchemaCollection<TKey>
      */
     public function buildSchema(
-        SchemaCollection $schema,
-        ResolvedSEO $seo
+        SchemaCollection $schema
     ): SchemaCollection;
+
+    public function resolveSEO(): ResolvedSEO;
 }

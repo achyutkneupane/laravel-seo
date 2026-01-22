@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Schemas;
 
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
 use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use Illuminate\Support\Collection;
 use RalphJSmit\Laravel\SEO\Schema\ArticleSchema;
@@ -11,8 +12,11 @@ use RalphJSmit\Laravel\SEO\SchemaCollection;
 
 trait BlogSchema
 {
-    public function buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO): SchemaCollection
+    public function buildSchema(SchemaCollection $schema): SchemaCollection
     {
+        /** @var HasMarkup $this */
+        $resolvedSEO = $this->resolveSEO();
+
         return $schema
             ->add(fn (): array => [
                 '@context' => 'https://schema.org',

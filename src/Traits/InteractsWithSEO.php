@@ -92,18 +92,18 @@ trait InteractsWithSEO
         );
     }
 
-    protected function buildDynamicSchema(ResolvedSEO $resolvedSEO): SchemaCollection
+    protected function buildDynamicSchema(): SchemaCollection
     {
         $schema = SchemaCollection::make();
 
         if ($this instanceof HasMarkup) {
-            return $this->buildSchema($schema, $resolvedSEO);
+            return $this->buildSchema($schema);
         }
 
         return $schema;
     }
 
-    protected function resolveSEO(): ResolvedSEO
+    public function resolveSEO(): ResolvedSEO
     {
         $seo = $this->seo;
 
