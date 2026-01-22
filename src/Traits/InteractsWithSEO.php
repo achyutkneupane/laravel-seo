@@ -65,7 +65,7 @@ trait InteractsWithSEO
     {
         $resolvedSEO = $this->resolveSEO();
 
-        $schema = $this->buildDynamicSchema($resolvedSEO);
+        $schema = $this->buildDynamicSchema();
 
         if (count($this->breadcrumbs()) > 0) {
             $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
@@ -105,6 +105,7 @@ trait InteractsWithSEO
 
     public function resolveSEO(): ResolvedSEO
     {
+        /** @var SEO $seo */
         $seo = $this->seo;
 
         $title = $seo->meta_title ?? $this->getTitleValue() ?? '';
