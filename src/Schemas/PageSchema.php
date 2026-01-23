@@ -16,16 +16,6 @@ trait PageSchema
         $resolvedSEO = $this->resolveSEO();
 
         return $schema
-//            ->add(fn (): array => [
-//                '@context' => 'https://schema.org',
-//                '@type' => $resolvedSEO->pageType ?? $this->pageSchemaType(),
-//                'name' => $resolvedSEO->title,
-//                'description' => $resolvedSEO->description,
-//                'url' => $resolvedSEO->url,
-//                'inLanguage' => 'en',
-//                'author' => $resolvedSEO->authorArray(),
-//                'publisher' => $resolvedSEO->publisherArray(),
-//            ]);
         ->add(fn (): array => collect()
                 ->put('@context', 'https://schema.org')
                 ->put('@type', $resolvedSEO->pageType ?? $this->pageSchemaType())
