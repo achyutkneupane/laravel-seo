@@ -65,7 +65,7 @@ trait InteractsWithSEO
     {
         $resolvedSEO = $this->resolveSEO();
 
-        $schema = $this->buildDynamicSchema($resolvedSEO);
+        $schema = $this->buildDynamicSchema();
 
         if (count($this->breadcrumbs()) > 0) {
             $schema->addBreadcrumbs(function (BreadcrumbListSchema $breadcrumbs): void {
@@ -92,19 +92,9 @@ trait InteractsWithSEO
         );
     }
 
-    protected function buildDynamicSchema(ResolvedSEO $resolvedSEO): SchemaCollection
+    public function resolveSEO(): ResolvedSEO
     {
-        $schema = SchemaCollection::make();
-
-        if ($this instanceof HasMarkup) {
-            return $this->buildSchema($schema, $resolvedSEO);
-        }
-
-        return $schema;
-    }
-
-    protected function resolveSEO(): ResolvedSEO
-    {
+        /** @var SEO $seo */
         $seo = $this->seo;
 
         $title = $seo->meta_title ?? $this->getTitleValue() ?? '';
@@ -147,5 +137,16 @@ trait InteractsWithSEO
             isAvailable: $this->getAvailabilityValue(),
             sku: $this->getSkuValue(),
         );
+    }
+
+    protected function buildDynamicSchema(): SchemaCollection
+    {
+        $schema = SchemaCollection::make();
+
+        if ($this instanceof HasMarkup) {
+            return $this->buildSchema($schema);
+        }
+
+        return $schema;
     }
 }
