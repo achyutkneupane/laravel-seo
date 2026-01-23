@@ -16,36 +16,36 @@ trait ProductSchema
         $resolvedSEO = $this->resolveSEO();
 
         return $schema
-                ->add(fn (): array => collect()
-                ->put('@context', 'https://schema.org')
-                ->put('@type', $resolvedSEO->pageType ?? $this->productSchemaType())
-                ->when(
-                    $resolvedSEO->title,
-                    fn ($collection) => $collection->put('name', $resolvedSEO->title)
-                )
-                ->when(
-                    $resolvedSEO->description,
-                    fn ($collection) => $collection->put('description', $resolvedSEO->description)
-                )
-                ->when(
-                    $resolvedSEO->url,
-                    fn ($collection) => $collection->put('url', $resolvedSEO->url)
-                        ->put('@id', $resolvedSEO->url)
-                )
-                ->when(
-                    $resolvedSEO->image,
-                    fn ($collection) => $collection->put('image', $resolvedSEO->image)
-                )
-                ->when(
-                    $resolvedSEO->brand,
-                    fn ($collection) => $collection->put('brand', $resolvedSEO->brandArray())
-                )
-                ->when(
-                    $resolvedSEO->sku,
-                    fn ($collection) => $collection->put('sku', $resolvedSEO->sku)
-                )
-                ->put('offers', $this->getPriceArray($resolvedSEO))
-                ->toArray()
+            ->add(
+                fn () => collect()
+                    ->put('@context', 'https://schema.org')
+                    ->put('@type', $resolvedSEO->pageType ?? $this->productSchemaType())
+                    ->when(
+                        $resolvedSEO->title,
+                        fn ($collection) => $collection->put('name', $resolvedSEO->title)
+                    )
+                    ->when(
+                        $resolvedSEO->description,
+                        fn ($collection) => $collection->put('description', $resolvedSEO->description)
+                    )
+                    ->when(
+                        $resolvedSEO->url,
+                        fn ($collection) => $collection->put('url', $resolvedSEO->url)
+                            ->put('@id', $resolvedSEO->url)
+                    )
+                    ->when(
+                        $resolvedSEO->image,
+                        fn ($collection) => $collection->put('image', $resolvedSEO->image)
+                    )
+                    ->when(
+                        $resolvedSEO->brand,
+                        fn ($collection) => $collection->put('brand', $resolvedSEO->brandArray())
+                    )
+                    ->when(
+                        $resolvedSEO->sku,
+                        fn ($collection) => $collection->put('sku', $resolvedSEO->sku)
+                    )
+                    ->put('offers', $this->getPriceArray($resolvedSEO))
             );
     }
 

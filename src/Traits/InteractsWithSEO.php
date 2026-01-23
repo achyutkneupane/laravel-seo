@@ -92,17 +92,6 @@ trait InteractsWithSEO
         );
     }
 
-    protected function buildDynamicSchema(): SchemaCollection
-    {
-        $schema = SchemaCollection::make();
-
-        if ($this instanceof HasMarkup) {
-            return $this->buildSchema($schema);
-        }
-
-        return $schema;
-    }
-
     public function resolveSEO(): ResolvedSEO
     {
         /** @var SEO $seo */
@@ -148,5 +137,16 @@ trait InteractsWithSEO
             isAvailable: $this->getAvailabilityValue(),
             sku: $this->getSkuValue(),
         );
+    }
+
+    protected function buildDynamicSchema(): SchemaCollection
+    {
+        $schema = SchemaCollection::make();
+
+        if ($this instanceof HasMarkup) {
+            return $this->buildSchema($schema);
+        }
+
+        return $schema;
     }
 }
