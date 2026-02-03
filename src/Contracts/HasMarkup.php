@@ -10,7 +10,7 @@ use RalphJSmit\Laravel\SEO\SchemaCollection;
 /**
  * @template TKey of array-key
  */
-interface HasMarkup
+interface HasMarkup extends HasColumns
 {
     /**
      * @param  SchemaCollection<TKey>  $schema
