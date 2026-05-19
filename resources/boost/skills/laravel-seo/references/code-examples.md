@@ -1,131 +1,200 @@
-## Basic Model SEO Setup
-```php
-namespace App\Models;
+---
+name: laravel-seo-code-examples
+description: Copy/paste examples for integrating achyutn/laravel-seo with Eloquent models (traits, overrides, breadcrumbs, schema traits).
+license: MIT
+tags:
+  - laravel
+  - seo
+  - eloquent
+  - schema
+  - sitemap
+metadata:
+  author: Achyut Neupane
+---
 
-use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
-use Illuminate\Database\Eloquent\Model;
+# Laravel SEO Code Examples (achyutn/laravel-seo)
 
-class Post extends Model
-{
-    use InteractsWithSEO;
+## Context
+These examples are for consumers of `achyutn/laravel-seo`.
 
-    // Map the database 'name' column to the SEO title
-    public string $titleColumn = 'name';
-    
-    // Map the database 'excerpt' column to the SEO description
-    public string $descriptionColumn = 'excerpt';
-}
-```
+Notes about this repo's current implementation:
+- Value override methods are `titleValue()`, `descriptionValue()`, `tagsValue()`, `urlValue()`, etc. (resolved by `src/Traits/HasColumns.php`).
+- The public getter method on the contract/trait is `getURLValue()` (uppercase `URL`) (`src/Contracts/HasColumns.php`, `src/Traits/HasColumns.php`). Some internal code calls `getUrlValue()` (lowercase `l`), so if you hit URL-related issues, check that mismatch.
+- Breadcrumb items are `AchyutN\LaravelSEO\Data\Breadcrumb` and the constructor takes named args `label:` and `url:` (`src/Data/Breadcrumb.php`).
+- Schema contract signature is `buildSchema(SchemaCollection $schema): SchemaCollection` and schema traits call `$this->resolveSEO()` internally (`src/Contracts/HasMarkup.php`, `src/Schemas/*`).
 
-## Model Setup with Complex Computed Values & Breadcrumbs
+## Examples
 
-```php
-namespace App\Models;
-
-use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
-use AchyutN\LaravelSEO\Data\Breadcrumb;
-use Illuminate\Database\Eloquent\Model;
-
-class Product extends Model
-{
-    use InteractsWithSEO;
-
-    // Complex logic for the SEO title
-    public function titleValue(): ?string
-    {
-        return "{$this->name} - Buy Now for \${$this->price}";
-    }
-
-    // Returning an array for meta keywords/tags
-    public function tagsValue(): ?array
-    {
-        return $this->categories->pluck('name')->toArray();
-    }
-    
-    // Adding breadcrumbs for schema
-    public function breadcrumbs(): array
-    {
-        return [
-            new Breadcrumb('Home', url('/')),
-            new Breadcrumb('Products', url('/products')),
-            new Breadcrumb($this->name, $this->urlValue()),
-        ];
-    }
-}
-```
-
-## Schema Generation Setup
-
-```php
-namespace App\Models;
-
-use AchyutN\LaravelSEO\Contracts\HasMarkup;
-use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
-use AchyutN\LaravelSEO\Schemas\BlogSchema;
-use Illuminate\Database\Eloquent\Model;
-
-class Article extends Model implements HasMarkup
-{
-    use InteractsWithSEO;
-    use BlogSchema; // Provides BlogPosting and Article Schema.org markup
-
-    public string $authorColumn = 'author_name';
-    public string $publishedAtColumn = 'published_at';
-}
-```
-
-## Writing Custom Schema
+### 1) Basic Model Setup (Columns)
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace App\Schemas;
+namespace App\Models;
 
-use App\Models\Author;
-use RalphJSmit\Laravel\SEO\SchemaCollection;
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Illuminate\Database\Eloquent\Model;
 
-trait AuthorSchema
+final class Post extends Model
 {
-    public function buildSchema(SchemaCollection $schema): SchemaCollection
+    use InteractsWithSEO;
+
+    protected $guarded = [];
+
+    // Map model fields to SEO fields (HasColumns resolution uses these properties).
+    public string $titleColumn = 'name';
+    public string $descriptionColumn = 'excerpt';
+    public string $imageColumn = 'thumbnail_path';
+}
+```
+
+### 2) Computed Values (Methods Win Over Columns)
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Illuminate\Database\Eloquent\Model;
+
+final class Product extends Model
+{
+    use InteractsWithSEO;
+
+    protected $guarded = [];
+
+    // Prefer *Value() overrides when the value is computed.
+    public function titleValue(): ?string
     {
-        $resolvedSEO = $this->resolveSEO();
+        /** @var string|null $name */
+        $name = $this->getAttribute('name');
 
-        /** @var Author $model */
-        $model = $resolvedSEO->getModel();
+        /** @var float|int|string|null $price */
+        $price = $this->getAttribute('price');
 
-        return $schema
-            ->add(fn (): array => [
-                '@context' => 'https://schema.org',
-                '@type' => $this->blogSchemaType(),
-                '@id' => $resolvedSEO->url,
-                'mainEntityOfPage' => $resolvedSEO->url,
-                'name' => $resolvedSEO->title,
-                'description' => $resolvedSEO->description,
-                'url' => $resolvedSEO->url,
-                /** @phpstan-var string|null $email */
-                'email' => $model->getAttribute('email'),
-                'image' => $resolvedSEO->image,
-                'sameAs' => array_values($model->social_links),
-                'interactionStatistic' => [
-                    [
-                        '@type' => 'InteractionCounter',
-                        'interactionType' => 'http://schema.org/UserPageVisits',
-                        'userInteractionCount' => $model->total_views,
-                    ],
-                    [
-                        '@type' => 'InteractionCounter',
-                        'interactionType' => 'http://schema.org/PlusOnes',
-                        'userInteractionCount' => $model->getTotalVotes(),
-                    ],
-                ],
-            ]);
+        if ($name === null) {
+            return null;
+        }
+
+        return $price !== null ? sprintf('%s - %s', $name, $price) : $name;
     }
 
-    protected function blogSchemaType(): string
+    /** @return array<int, string>|null */
+    public function tagsValue(): ?array
     {
-        return 'Person';
+        // Return normalized keywords.
+        return ['products', 'shop'];
+    }
+
+    public function urlValue(): ?string
+    {
+        // Use a canonical URL in your app.
+        return url('/products/'.$this->getKey());
     }
 }
 ```
+
+### 3) Breadcrumbs (Schema BreadcrumbList)
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use AchyutN\LaravelSEO\Data\Breadcrumb;
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Illuminate\Database\Eloquent\Model;
+
+final class Article extends Model
+{
+    use InteractsWithSEO;
+
+    public function urlValue(): ?string
+    {
+        return url('/blog/'.$this->getKey());
+    }
+
+    /** @return array<int, Breadcrumb> */
+    public function breadcrumbs(): array
+    {
+        return [
+            new Breadcrumb(label: 'Home', url: url('/')),
+            new Breadcrumb(label: 'Blog', url: url('/blog')),
+            new Breadcrumb(label: (string) $this->getAttribute('title'), url: $this->urlValue()),
+        ];
+    }
+}
+```
+
+### 4) Schema Traits (Blog/Page/Product)
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use AchyutN\LaravelSEO\Contracts\HasMarkup;
+use AchyutN\LaravelSEO\Schemas\BlogSchema;
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Illuminate\Database\Eloquent\Model;
+
+final class BlogPost extends Model implements HasMarkup
+{
+    use InteractsWithSEO;
+    use BlogSchema;
+
+    protected $guarded = [];
+
+    // Example: point author/published date at your columns.
+    public string $authorColumn = 'author_name';
+    public string $publishedAtColumn = 'published_at';
+}
+```
+
+### 5) Backfill Existing Records
+
+```bash
+php artisan seo:generate
+php artisan seo:generate --regenerate
+```
+
+### 6) Add suffix to title
+
+Publish (if not already) and update the `seo.php` config file and add the `title.suffix` key:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use AchyutN\LaravelSEO\Models\SEO;
+
+return [
+    'model' => SEO::class,
+    'sitemap' => '/sitemap.xml',
+    'database' => config('database.default', 'mysql'),
+    'title' => [
+        'suffix' => sprintf(' - %s', config('app.name')),
+    ],
+];
+```
+
+## Anti-patterns / Gotchas
+- If your tests/app create models using `InteractsWithSEO`, ensure the `seo` table exists (this package publishes a migration stub via `--tag="laravel-seo"`).
+- Sitemap routes are closures (`/sitemap.xml`, `/sitemap.txt`) which typically break `php artisan route:cache`.
+- If sitemap rendering returns empty entries, confirm the SEO model relation used by the sitemap (`with('model')`) matches your DB morph columns and upstream model conventions.
+
+## References
+- Skill: `resources/boost/skills/laravel-seo/SKILL.md`
+- Package wiring: `src/SEOProvider.php`
+- Traits/contracts: `src/Traits/InteractsWithSEO.php`, `src/Traits/HasColumns.php`, `src/Contracts/HasMarkup.php`
+- Schema traits: `src/Schemas/*`

@@ -1,59 +1,60 @@
 ---
 name: laravel-seo
-description: Apply opiniated conventions for the achyutn/laravel-seo package to add, manage, and configure SEO metadata, sitemaps, and schema.org markup for Laravel Eloquent models. Use this when defining SEO behavior, custom metadata mapping, or schema generation on models.
+description: Apply opinionated conventions for the achyutn/laravel-seo package to add, manage, and configure SEO metadata, sitemaps, and schema.org markup for Laravel Eloquent models.
 license: MIT
+tags:
+  - laravel
+  - seo
+  - sitemap
+  - schema
+  - eloquent
+  - achyutn/laravel-seo
 metadata:
   author: Achyut Neupane
 ---
 
-# AchyutN Laravel SEO Guidelines
+# AchyutN Laravel SEO
 
-## Overview
+## Context
+You are working in a Laravel app using `achyutn/laravel-seo` (a wrapper around `ralphjsmit/laravel-seo`) to generate SEO metadata, schema markup, and sitemaps directly from Eloquent models.
 
-Apply the `achyutn/laravel-seo` package guidelines to seamlessly integrate SEO metadata, Open Graph tags, Schema.org JSON-LD, and sitemaps into Laravel Eloquent models.
-
-## When to Activate
-
-- Activate this skill when the user asks to add SEO support to a Laravel Eloquent model.
-- Activate this skill when managing meta titles, descriptions, images, or schema.org markup for database-driven pages (like articles, products, or generic pages).
-- Activate this skill when working with sitemaps (`sitemap.xml`, `sitemap.txt`) or SEO data backfilling commands.
-- Activate this skill when customizing the mapping of model attributes to SEO properties.
-
-## Scope
-
-- **In scope:** Eloquent models, SEO attribute mapping (traits/contracts), Schema.org traits, Breadcrumbs, Artisan commands (`seo:generate`), SEO model relationships.
-- **Out of scope:** Frontend blade directive rendering (primarily handled by the underlying `ralphjsmit/laravel-seo` package), non-database static page SEO, JS/TS implementations.
-
-## Workflow
-
-1. Identify the Eloquent model that requires SEO capabilities.
-2. Apply the `AchyutN\LaravelSEO\Traits\InteractsWithSEO` trait to the model.
-3. Determine how the model's attributes map to SEO properties (e.g., title, description, image).
-4. Map attributes by either defining public properties (e.g., `public string $titleColumn = 'name';`) or overriding value methods (e.g., `public function titleValue(): ?string`).
-5. If the model requires Schema.org markup, implement the `AchyutN\LaravelSEO\Contracts\HasMarkup` contract and apply the appropriate schema trait (e.g., `BlogSchema`, `PageSchema`, `ProductSchema`).
-6. Remind the user to run `php artisan seo:generate` if applying this to a model that already has existing database records.
-
-## Core Rules (Summary)
-
-- Models must use the `InteractsWithSEO` trait. This trait automatically hooks into the `created` event to generate an associated `SEO` model.
-- Attribute resolution cascades: it first checks for a custom method (e.g., `titleValue()`), then falls back to a dynamically defined column property (e.g., `$titleColumn`), and finally defaults to a standard column name (e.g., `title`).
-- Supported mapped columns include: title, description, category, image, author, author_url, publisher, publisher_url, tags, url, published_at, modified_at, page_type, brand, price, discount_price, currency, availability, and sku.
-- The package automatically registers `/sitemap.xml` and `/sitemap.txt` routes; manual registration is not needed.
-
-## Do and Don't
-
-**Do:**
-- Use the `InteractsWithSEO` trait to automatically handle SEO model creation and updates.
-- Define custom attribute mappings using properties like `public string $titleColumn = 'heading';` or `public string $imageColumn = 'thumbnail';`.
-- Use specific value methods like `public function getDescriptionValue(): ?string` or `public function tagsValue(): ?array` for complex logic or computed SEO properties.
-- Return an array of `AchyutN\LaravelSEO\Data\Breadcrumb` objects in the `breadcrumbs()` method if the model should generate BreadcrumbList schema.
-- Implement the `HasMarkup` contract and use traits like `BlogSchema` for articles or `ProductSchema` for e-commerce items.
-
-**Don't:**
-- Don't manually hook into Model events to create the `SEO` relationship; `InteractsWithSEO` boots this automatically via `bootInteractsWithSEO()`.
-- Don't manually define sitemap generation logic; rely on the package's `SitemapService` and default routes.
-- Don't manually construct massive SEO arrays; use the provided column mapping overrides.
+## Rules
+- Publish this package's config + migration stub with `php artisan vendor:publish --tag="laravel-seo"`.
+- Do not publish the dependency (`ralphjsmit/laravel-seo`) config/migration; the README warns that it breaks this package.
+- Add `AchyutN\LaravelSEO\Traits\InteractsWithSEO` to any model that should have SEO.
+- Ensure the `seo` table exists. The provided stub uses `morphs('model')` (`model_type`/`model_id`) and the trait relation is `morphOne(..., 'model')` (`database/create_seo_table.php.stub`, `src/Traits/InteractsWithSEO.php`).
+- Backfill existing records with `php artisan seo:generate` (use `--regenerate` to rebuild existing rows) (`src/Commands/GenerateSEO.php`).
+- `seo:generate` discovers models by scanning only `app/Models` in the consuming app (`src/Services/SEOService.php`).
+- Customize values using the package's resolution order: `*Value()` method -> `$*Column` property -> default column name (`src/Traits/HasColumns.php`). Prefer `titleValue()`, `descriptionValue()`, `tagsValue()`, `urlValue()`, etc.
+- Schema markup: implement `AchyutN\LaravelSEO\Contracts\HasMarkup` and use one of `BlogSchema`, `PageSchema`, `ProductSchema`. In this repo the method signature is `buildSchema(SchemaCollection $schema): SchemaCollection` and schemas call `$this->resolveSEO()` internally (`src/Contracts/HasMarkup.php`, `src/Schemas/*`).
+- Breadcrumb markup: override `breadcrumbs(): array` to return `AchyutN\LaravelSEO\Data\Breadcrumb` instances (`src/Data/Breadcrumb.php`, `src/Traits/InteractsWithSEO.php`).
 
 ## Examples
+- Install/publish + run backfill:
 
-- See `references/code-examples.md` for detailed examples of basic model setup, complex computed values, breadcrumbs, and schema generation.
+```bash
+php artisan vendor:publish --tag="laravel-seo"
+php artisan migrate
+php artisan seo:generate
+```
+
+- Model setup and customization examples: `references/code-examples.md`.
+
+## Anti-patterns / Gotchas
+- Route caching: sitemap routes are registered as closures in `SEOProvider` and typically break `php artisan route:cache` in consuming apps (`src/SEOProvider.php`).
+- Config mismatch: `config('seo.sitemap')` exists, but routes are currently hard-coded to `/sitemap.xml` and `/sitemap.txt` (`config/seo.php`, `src/SEOProvider.php`).
+- URL getter mismatch in this repo: `HasColumns` defines `getURLValue()` but other code calls `getUrlValue()`; if URL resolution breaks, check for this mismatch (`src/Contracts/HasColumns.php`, `src/Traits/HasColumns.php`, `src/Traits/InteractsWithSEO.php`, `src/Services/SEOService.php`).
+- `InteractsWithSEO::getDynamicSEOData()` references `$seo` without defining it; test SEO rendering paths that call this method (`src/Traits/InteractsWithSEO.php`).
+- `ResolvedSEO` currently requires non-null `author`/`publisher` strings; make sure your model resolves them (or you will hit a `TypeError`) (`src/Data/ResolvedSEO.php`, `src/Traits/InteractsWithSEO.php`).
+- Migration mismatch risk: the stub stores `meta_keywords` and `robots` as `string`, while the SEO model casts them as `array` (`database/create_seo_table.php.stub`, `src/Models/SEO.php`).
+- Upstream convention risk: this package uses morph name `model`, but the wrapped upstream model docs reference `seoable_*`; verify sitemap/model relations resolve in your app (`database/create_seo_table.php.stub`, `src/Models/SEO.php`, `src/Services/SitemapService.php`).
+
+## References
+- README: `README.md`
+- Provider + routes: `src/SEOProvider.php`
+- Model integration: `src/Traits/InteractsWithSEO.php`
+- Value resolution: `src/Traits/HasColumns.php`
+- Schema traits: `src/Schemas/*`
+- Sitemap rendering: `src/Services/SitemapService.php`
+- Backfill command: `src/Commands/GenerateSEO.php`
+- Github: `https://github.com/achyutkneupane/laravel-seo`
