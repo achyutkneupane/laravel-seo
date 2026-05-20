@@ -36,6 +36,8 @@ use Illuminate\Support\Carbon;
  * @method string|null publisherValue()
  * @method string|null publisherUrlValue()
  * @method array<int, string>|null tagsValue()
+ * @method array<int, string> sitemapImages()
+ * @method array<int, array<string, mixed>> sitemapVideos()
  * @method string|null urlValue()
  * @method Carbon|null publishedAtValue()
  * @method Carbon|null modifiedAtValue()
@@ -230,6 +232,26 @@ trait HasColumns
         }
 
         return data_get($this, $this->skuColumn());
+    }
+
+    public function getSitemapImagesValue(): array
+    {
+        if (method_exists($this, 'sitemapImages')) {
+            return $this->sitemapImages();
+        }
+
+        $image = $this->getImageValue();
+
+        return $image !== null ? [$image] : [];
+    }
+
+    public function getSitemapVideosValue(): array
+    {
+        if (method_exists($this, 'sitemapVideos')) {
+            return $this->sitemapVideos();
+        }
+
+        return [];
     }
 
     protected function titleColumn(): string
