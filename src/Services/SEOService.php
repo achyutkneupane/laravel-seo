@@ -13,7 +13,7 @@ use ReflectionClass;
 
 final class SEOService
 {
-    /** @return array{url: string|null, imageUrl: string|null, title: string|null, description: string|null, updatedAt: Carbon|null, tags: array<int, string>, author: string|null, publisher: string|null} */
+    /** @return array{url: string|null, imageUrl: string|null, title: string|null, description: string|null, updatedAt: Carbon|null, tags: array<int, string>, author: string|null, publisher: string|null, sitemapImages: array<int, string>, sitemapVideos: array<int, array<string, mixed>>} */
     public function getModelValues(Model $model): array
     {
         /** @var string|null $url */
@@ -32,6 +32,10 @@ final class SEOService
         $author = method_exists($model, 'getAuthorValue') ? $model->getAuthorValue() : null;
         /** @var string|null $publisher */
         $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
+        /** @var array<int, string> $sitemapImages */
+        $sitemapImages = method_exists($model, 'getSitemapImagesValue') ? $model->getSitemapImagesValue() : [];
+        /** @var array<int, array<string, mixed>> $sitemapVideos */
+        $sitemapVideos = method_exists($model, 'getSitemapVideosValue') ? $model->getSitemapVideosValue() : [];
 
         /** @var string $imageURL */
         $imageURL = pipeline()
@@ -57,6 +61,38 @@ final class SEOService
             ])
             ->thenReturn();
 
+        /** @var array<int, string> $processedSitemapImages */
+        $processedSitemapImages = [];
+        foreach ($sitemapImages as $sitemapImage) {
+            /** @var string|null $processedImageUrl */
+            $processedImageUrl = pipeline()
+                ->send($sitemapImage)
+                ->through([
+                    function (?string $imagePath, Closure $next): mixed {
+                        if (! filled($imagePath)) {
+                            return null;
+                        }
+
+                        if (preg_match('/^https?:\/\//', $imagePath)) {
+                            return $imagePath;
+                        }
+
+                        return $next($imagePath);
+                    },
+                    function (string $imagePath): string {
+                        /** @phpstan-var string $url */
+                        $url = config('app.url');
+
+                        return $url.'/storage/'.$imagePath;
+                    },
+                ])
+                ->thenReturn();
+
+            if ($processedImageUrl !== null) {
+                $processedSitemapImages[] = $processedImageUrl;
+            }
+        }
+
         return [
             'url' => $url,
             'imageUrl' => $imageURL,
@@ -66,6 +102,8 @@ final class SEOService
             'tags' => $tags,
             'author' => $author,
             'publisher' => $publisher,
+            'sitemapImages' => $processedSitemapImages,
+            'sitemapVideos' => $sitemapVideos,
         ];
     }
 
