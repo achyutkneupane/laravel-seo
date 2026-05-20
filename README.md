@@ -178,6 +178,143 @@ You can access the sitemap in two formats:
 
 The XML sitemap will be auto-injected in your blade layout along with the metadata.
 
+### Sitemap Images
+
+By default, the XML sitemap includes a single image per URL using the model's `imageValue()` or `$imageColumn`.
+To include multiple images for a URL, define a `sitemapImages(): array` method on your model that returns an array of image URLs.
+
+When multiple images are provided, only the `<image:loc>` tag is output for each image (no title or caption), following Google's current best practices.
+
+```php
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    public function sitemapImages(): array
+    {
+        return [
+            'https://example.com/images/post-1.jpg',
+            'https://example.com/images/post-2.jpg',
+            'https://example.com/images/post-3.jpg',
+        ];
+    }
+}
+```
+
+### Sitemap Videos
+
+To include YouTube video information in your XML sitemap, define a `sitemapVideos(): array` method on your model.
+Each video must include: `thumbnail_loc`, `title`, `description`, and `player_loc` (the YouTube embed URL).
+
+```php
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    public function sitemapVideos(): array
+    {
+        return [
+            [
+                'thumbnail_loc' => 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+                'title' => 'How to cook pasta',
+                'description' => 'A step-by-step guide to cooking perfect pasta.',
+                'player_loc' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'duration' => 600,
+                'publication_date' => '2024-01-15T08:00:00+00:00',
+            ],
+        ];
+    }
+}
+```
+
+Supported video fields:
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `thumbnail_loc` | Yes | `string` | URL to the video thumbnail image |
+| `title` | Yes | `string` | Title of the video (max 100 chars) |
+| `description` | Yes | `string` | Description of the video (max 2048 chars) |
+| `player_loc` | Yes | `string` | YouTube embed URL (e.g., `https://www.youtube.com/embed/VIDEO_ID`) |
+| `duration` | No | `int` | Duration in seconds |
+| `publication_date` | No | `string` | ISO 8601 publication date |
+| `expiration_date` | No | `string` | ISO 8601 expiration date |
+| `rating` | No | `float` | Video rating (0.0 - 5.0) |
+| `view_count` | No | `int` | Number of views |
+| `family_friendly` | No | `bool` | Whether the video is family-friendly |
+| `requires_subscription` | No | `bool` | Whether a subscription is required |
+| `live` | No | `bool` | Whether the video is a live stream |
+
+
+### Sitemap Images
+
+By default, the XML sitemap includes a single image per URL using the model's `imageValue()` or `$imageColumn`.
+To include multiple images for a URL, define a `sitemapImages(): array` method on your model that returns an array of image URLs.
+
+When multiple images are provided, only the `<image:loc>` tag is output for each image (no title or caption), following Google's current best practices.
+
+```php
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    public function sitemapImages(): array
+    {
+        return [
+            'https://example.com/images/post-1.jpg',
+            'https://example.com/images/post-2.jpg',
+            'https://example.com/images/post-3.jpg',
+        ];
+    }
+}
+```
+
+### Sitemap Videos
+
+To include video information in your XML sitemap, define a `sitemapVideos(): array` method on your model.
+Each video must include at minimum: `thumbnail_loc`, `title`, `description`, and either `content_loc` or `player_loc`.
+
+```php
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    public function sitemapVideos(): array
+    {
+        return [
+            [
+                'thumbnail_loc' => 'https://example.com/thumbnails/video-1.jpg',
+                'title' => 'How to cook pasta',
+                'description' => 'A step-by-step guide to cooking perfect pasta.',
+                'content_loc' => 'https://example.com/videos/pasta.mp4',
+                'player_loc' => 'https://example.com/player?video=pasta',
+                'duration' => 600,
+                'publication_date' => '2024-01-15T08:00:00+00:00',
+            ],
+        ];
+    }
+}
+```
+
+Supported video fields:
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `thumbnail_loc` | Yes | `string` | URL to the video thumbnail image |
+| `title` | Yes | `string` | Title of the video (max 100 chars) |
+| `description` | Yes | `string` | Description of the video (max 2048 chars) |
+| `content_loc` | Yes* | `string` | URL to the actual video file (.mp4, .mov, etc.) |
+| `player_loc` | Yes* | `string` | URL to the video player (embed URL) |
+| `duration` | No | `int` | Duration in seconds |
+| `publication_date` | No | `string` | ISO 8601 publication date |
+| `expiration_date` | No | `string` | ISO 8601 expiration date |
+| `rating` | No | `float` | Video rating (0.0 - 5.0) |
+| `view_count` | No | `int` | Number of views |
+| `family_friendly` | No | `bool` | Whether the video is family-friendly |
+| `requires_subscription` | No | `bool` | Whether a subscription is required |
+| `live` | No | `bool` | Whether the video is a live stream |
+
+*At least one of `content_loc` or `player_loc` is required.
+
 ### Customization
 
 This package resolves SEO data using a simple priority order:
