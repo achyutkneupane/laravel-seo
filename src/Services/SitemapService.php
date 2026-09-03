@@ -48,16 +48,16 @@ final class SitemapService
             }
 
             $xml[] = '<url>';
-            $xml[] = '<loc>'.htmlspecialchars($url, ENT_XML1, 'UTF-8').'</loc>';
+            $xml[] = '<loc>'.$this->escapeXml($url).'</loc>';
             if ($updatedAt) {
-                $xml[] = '<lastmod>'.htmlspecialchars($updatedAt->toAtomString(), ENT_XML1, 'UTF-8').'</lastmod>';
+                $xml[] = '<lastmod>'.$this->escapeXml($updatedAt->toAtomString()).'</lastmod>';
             }
 
             if ($imageUrl && empty($sitemapImages)) {
                 $xml[] = '<image:image>';
-                $xml[] = '<image:loc>'.htmlspecialchars($imageUrl, ENT_XML1, 'UTF-8').'</image:loc>';
-                $xml[] = '<image:title>'.htmlspecialchars($title ?? '', ENT_XML1, 'UTF-8').'</image:title>';
-                $xml[] = '<image:caption>'.htmlspecialchars($description ?? '', ENT_XML1, 'UTF-8').'</image:caption>';
+                $xml[] = '<image:loc>'.$this->escapeXml($imageUrl).'</image:loc>';
+                $xml[] = '<image:title>'.$this->escapeXml($title ?? '').'</image:title>';
+                $xml[] = '<image:caption>'.$this->escapeXml($description ?? '').'</image:caption>';
                 $xml[] = '</image:image>';
             }
 
@@ -75,18 +75,18 @@ final class SitemapService
                 }
 
                 $xml[] = '<image:image>';
-                $xml[] = '<image:loc>'.htmlspecialchars($imgLoc, ENT_XML1, 'UTF-8').'</image:loc>';
+                $xml[] = '<image:loc>'.$this->escapeXml($imgLoc).'</image:loc>';
                 if ($imgTitle !== null && $imgTitle !== '') {
-                    $xml[] = '<image:title>'.htmlspecialchars($imgTitle, ENT_XML1, 'UTF-8').'</image:title>';
+                    $xml[] = '<image:title>'.$this->escapeXml($imgTitle).'</image:title>';
                 }
                 if ($imgCaption !== null && $imgCaption !== '') {
-                    $xml[] = '<image:caption>'.htmlspecialchars($imgCaption, ENT_XML1, 'UTF-8').'</image:caption>';
+                    $xml[] = '<image:caption>'.$this->escapeXml($imgCaption).'</image:caption>';
                 }
                 if ($imgGeo !== null && $imgGeo !== '') {
-                    $xml[] = '<image:geo_location>'.htmlspecialchars($imgGeo, ENT_XML1, 'UTF-8').'</image:geo_location>';
+                    $xml[] = '<image:geo_location>'.$this->escapeXml($imgGeo).'</image:geo_location>';
                 }
                 if ($imgLicense !== null && $imgLicense !== '') {
-                    $xml[] = '<image:license>'.htmlspecialchars($imgLicense, ENT_XML1, 'UTF-8').'</image:license>';
+                    $xml[] = '<image:license>'.$this->escapeXml($imgLicense).'</image:license>';
                 }
                 $xml[] = '</image:image>';
             }
@@ -94,24 +94,24 @@ final class SitemapService
             foreach ($sitemapVideos as $video) {
                 /** @var array{thumbnail_loc: string, title: string, description: string, content_loc?: string, player_loc?: string, duration?: int|float|string, publication_date?: string, expiration_date?: string, rating?: int|float|string, view_count?: int|float|string, family_friendly?: bool, requires_subscription?: bool, live?: bool} $video */
                 $xml[] = '<video:video>';
-                $xml[] = '<video:thumbnail_loc>'.htmlspecialchars((string) $video['thumbnail_loc'], ENT_XML1, 'UTF-8').'</video:thumbnail_loc>';
-                $xml[] = '<video:title>'.htmlspecialchars((string) $video['title'], ENT_XML1, 'UTF-8').'</video:title>';
-                $xml[] = '<video:description>'.htmlspecialchars((string) $video['description'], ENT_XML1, 'UTF-8').'</video:description>';
+                $xml[] = '<video:thumbnail_loc>'.$this->escapeXml((string) $video['thumbnail_loc']).'</video:thumbnail_loc>';
+                $xml[] = '<video:title>'.$this->escapeXml((string) $video['title']).'</video:title>';
+                $xml[] = '<video:description>'.$this->escapeXml((string) $video['description']).'</video:description>';
 
                 if (isset($video['content_loc'])) {
-                    $xml[] = '<video:content_loc>'.htmlspecialchars((string) $video['content_loc'], ENT_XML1, 'UTF-8').'</video:content_loc>';
+                    $xml[] = '<video:content_loc>'.$this->escapeXml((string) $video['content_loc']).'</video:content_loc>';
                 }
                 if (isset($video['player_loc'])) {
-                    $xml[] = '<video:player_loc>'.htmlspecialchars((string) $video['player_loc'], ENT_XML1, 'UTF-8').'</video:player_loc>';
+                    $xml[] = '<video:player_loc>'.$this->escapeXml((string) $video['player_loc']).'</video:player_loc>';
                 }
                 if (isset($video['duration'])) {
                     $xml[] = '<video:duration>'.(int) $video['duration'].'</video:duration>';
                 }
                 if (isset($video['publication_date'])) {
-                    $xml[] = '<video:publication_date>'.htmlspecialchars((string) $video['publication_date'], ENT_XML1, 'UTF-8').'</video:publication_date>';
+                    $xml[] = '<video:publication_date>'.$this->escapeXml((string) $video['publication_date']).'</video:publication_date>';
                 }
                 if (isset($video['expiration_date'])) {
-                    $xml[] = '<video:expiration_date>'.htmlspecialchars((string) $video['expiration_date'], ENT_XML1, 'UTF-8').'</video:expiration_date>';
+                    $xml[] = '<video:expiration_date>'.$this->escapeXml((string) $video['expiration_date']).'</video:expiration_date>';
                 }
                 if (isset($video['rating'])) {
                     $xml[] = '<video:rating>'.(float) $video['rating'].'</video:rating>';
@@ -155,11 +155,14 @@ final class SitemapService
 
             /** @phpstan-var string|null $url */
             [
-                'url' => $url
+                'url' => $url,
             ] = $this->service->getModelValues($model);
 
             if ($url !== null) {
-                $txt[] = $url;
+                $sanitizedUrl = preg_replace('/[\r\n\t]+/', '', mb_trim($url));
+                if ($sanitizedUrl !== null && $sanitizedUrl !== '') {
+                    $txt[] = $sanitizedUrl;
+                }
             }
         }
 
@@ -174,5 +177,17 @@ final class SitemapService
             ->with('model')
             ->orderBy('model_type')
             ->lazy();
+    }
+
+    private function escapeXml(?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        /** @var string $clean */
+        $clean = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', '', $value) ?? '';
+
+        return htmlspecialchars($clean, ENT_XML1, 'UTF-8');
     }
 }
