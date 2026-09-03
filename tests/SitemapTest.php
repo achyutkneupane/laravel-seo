@@ -140,3 +140,72 @@ it('generates plain text sitemap', function (): void {
     expect($response->headers->get('Content-Type'))->toBe('text/plain; charset=UTF-8');
     expect($response->getContent())->toContain('https://example.com/blog/txt-post');
 });
+
+it('sanitizes invalid xml control characters from output', function (): void {
+    Blog::create([
+        'title' => "Title With\x00Null\x08Byte",
+        'url' => 'https://example.com/blog/control-chars',
+        'description' => "Description with \x1F control char",
+        'image' => 'images/sample.jpg',
+        'published_at' => Carbon::now(),
+    ]);
+
+    /** @var SitemapService $sitemapService */
+    $sitemapService = app(SitemapService::class);
+    $content = $sitemapService->toXML()->getContent();
+
+    expect($content)->toContain('<image:title>Title WithNullByte</image:title>');
+    expect($content)->toContain('<image:caption>Description with  control char</image:caption>');
+    expect($content)->not()->toContain("\x00");
+    expect($content)->not()->toContain("\x08");
+    expect($content)->not()->toContain("\x1F");
+});
+
+it('sanitizes crlf injection attempts in plain text sitemaps', function (): void {
+    Blog::create([
+        'title' => 'CRLF Blog Post',
+        'url' => "https://example.com/blog/injected\r\nhttps://malicious.com",
+        'description' => 'Testing CRLF prevention',
+        'published_at' => Carbon::now(),
+    ]);
+
+    /** @var SitemapService $sitemapService */
+    $sitemapService = app(SitemapService::class);
+    $response = $sitemapService->toTXT();
+
+    expect($response->getContent())->toContain('https://example.com/blog/injectedhttps://malicious.com');
+    expect(explode("\n", (string) $response->getContent()))->toHaveCount(1);
+});
+
+it('correctly normalizes paths with leading slashes and storage prefix', function (): void {
+    Blog::create([
+        'title' => 'Normalized Path Post',
+        'url' => 'https://example.com/blog/storage-path',
+        'description' => 'Testing storage paths',
+        'image' => '/storage/uploads/photo.jpg',
+        'published_at' => Carbon::now(),
+    ]);
+
+    /** @var SitemapService $sitemapService */
+    $sitemapService = app(SitemapService::class);
+    $content = $sitemapService->toXML()->getContent();
+
+    expect($content)->toContain('<image:loc>http://localhost/storage/uploads/photo.jpg</image:loc>');
+    expect($content)->not()->toContain('storage//');
+    expect($content)->not()->toContain('storage/storage/');
+});
+
+it('generates dynamic seo data without undefined variable errors', function (): void {
+    $blog = Blog::create([
+        'title' => 'Dynamic SEO Post',
+        'url' => 'https://example.com/blog/dynamic',
+        'description' => 'Testing dynamic SEO data',
+        'published_at' => Carbon::now(),
+    ]);
+
+    $seoData = $blog->getDynamicSEOData();
+
+    expect($seoData->title)->toBe('Dynamic SEO Post');
+    expect($seoData->description)->toBe('Testing dynamic SEO data');
+    expect($seoData->url)->toBe('https://example.com/blog/dynamic');
+});
