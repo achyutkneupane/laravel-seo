@@ -75,6 +75,13 @@ trait InteractsWithSEO
             });
         }
 
+        /** @var SEO|null $seo */
+        $seo = $this->seo;
+
+        $robots = app()->isLocal()
+            ? 'noindex, nofollow'
+            : (is_array($seo?->robots) ? implode(', ', $seo->robots) : ($seo?->robots ?? 'index, follow'));
+
         return new SEOData(
             title: $resolvedSEO->title,
             description: $resolvedSEO->description,
@@ -87,8 +94,8 @@ trait InteractsWithSEO
             tags: $resolvedSEO->tags,
             schema: $schema,
             type: 'article',
-            robots: app()->isLocal() ? 'noindex, nofollow' : implode(', ', $seo->robots ?? ['index', 'follow']),
-            openGraphTitle: $seo->og_title ?? $resolvedSEO->title,
+            robots: $robots,
+            openGraphTitle: $seo?->og_title ?? $resolvedSEO->title,
         );
     }
 

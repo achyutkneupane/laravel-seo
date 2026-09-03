@@ -23,20 +23,20 @@ final class ResolvedSEO
         public ?string $url,
         public ?string $category,
         public array $tags,
-        public string $author,
-        public ?string $authorUrl,
-        public string $publisher,
-        public ?string $publisherUrl,
-        public ?string $image,
-        public ?Carbon $publishedAt,
-        public ?Carbon $modifiedAt,
+        public ?string $author = null,
+        public ?string $authorUrl = null,
+        public ?string $publisher = null,
+        public ?string $publisherUrl = null,
+        public ?string $image = null,
+        public ?Carbon $publishedAt = null,
+        public ?Carbon $modifiedAt = null,
 
-        public ?string $pageType,
+        public ?string $pageType = null,
 
-        public ?string $brand,
-        public ?float $price,
-        public ?float $discountPrice,
-        public ?string $currency,
+        public ?string $brand = null,
+        public ?float $price = null,
+        public ?float $discountPrice = null,
+        public ?string $currency = null,
         public bool $isAvailable = false,
         public ?string $sku = null,
     ) {
@@ -46,6 +46,10 @@ final class ResolvedSEO
     /** @return AuthorArray[] */
     public function authorArray(): array
     {
+        if ($this->author === null || $this->author === '') {
+            return [];
+        }
+
         $authorData = [
             '@type' => 'Person',
             'name' => $this->author,
@@ -60,7 +64,7 @@ final class ResolvedSEO
     {
         return [
             '@type' => 'Brand',
-            'name' => $this->brand ?? $this->publisher,
+            'name' => $this->brand ?? $this->publisher ?? '',
             'url' => null,
         ];
     }
@@ -68,6 +72,10 @@ final class ResolvedSEO
     /** @return AuthorArray[] */
     public function publisherArray(): array
     {
+        if ($this->publisher === null || $this->publisher === '') {
+            return [];
+        }
+
         $publisherData = [
             '@type' => 'Organization',
             'name' => $this->publisher,
