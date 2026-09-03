@@ -83,7 +83,7 @@ This package supports multiple schema types using traits:
 - [ProductSchema](#product-schema) for products (e-commerce)
 - [PageSchema](#page-schema) for generic pages
 
-Each schema trait implements a `buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO)` method, which receives resolved SEO data from your model. To use any schema, add the corresponding trait to your model along with the interface `AchyutN\LaravelSEO\Contracts\HasMarkup`.
+Each schema trait implements the `buildSchema(SchemaCollection $schema): SchemaCollection` method required by the `AchyutN\LaravelSEO\Contracts\HasMarkup` interface and resolves SEO data from your model internally. To use any schema, add the corresponding trait to your model along with the interface `AchyutN\LaravelSEO\Contracts\HasMarkup`.
 
 #### Blog Schema
 

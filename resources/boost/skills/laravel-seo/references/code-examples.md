@@ -160,14 +160,82 @@ final class BlogPost extends Model implements HasMarkup
 }
 ```
 
-### 5) Backfill Existing Records
+### 5) Multiple Sitemap Images
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use AchyutN\LaravelSEO\Data\SitemapImage;
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Illuminate\Database\Eloquent\Model;
+
+final class GalleryPost extends Model
+{
+    use InteractsWithSEO;
+
+    /** @return array<int, string|SitemapImage|array<string, mixed>> */
+    public function sitemapImages(): array
+    {
+        return [
+            SitemapImage::make(
+                url: 'https://example.com/photos/cover.jpg',
+                title: 'Cover Photo',
+                caption: 'Featured photo of the gallery',
+                geoLocation: 'Kathmandu, Nepal'
+            ),
+            'https://example.com/photos/photo-2.jpg',
+        ];
+    }
+}
+```
+
+### 6) Sitemap Videos (YouTube Embeds or Direct Files)
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use AchyutN\LaravelSEO\Data\SitemapVideo;
+use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
+use Illuminate\Database\Eloquent\Model;
+
+final class VideoTutorial extends Model
+{
+    use InteractsWithSEO;
+
+    /** @return array<int, SitemapVideo|array<string, mixed>> */
+    public function sitemapVideos(): array
+    {
+        return [
+            SitemapVideo::make(
+                thumbnailLoc: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+                title: 'Laravel SEO Tutorial',
+                description: 'Complete guide to rich XML sitemaps in Laravel.',
+                playerLoc: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                duration: 600,
+                publicationDate: '2024-01-15T08:00:00+00:00',
+                familyFriendly: true
+            ),
+        ];
+    }
+}
+```
+
+### 7) Backfill Existing Records
 
 ```bash
 php artisan seo:generate
 php artisan seo:generate --regenerate
 ```
 
-### 6) Add suffix to title
+### 8) Add suffix to title
 
 Publish (if not already) and update the `seo.php` config file and add the `title.suffix` key:
 
@@ -197,4 +265,5 @@ return [
 - Skill: `resources/boost/skills/laravel-seo/SKILL.md`
 - Package wiring: `src/SEOProvider.php`
 - Traits/contracts: `src/Traits/InteractsWithSEO.php`, `src/Traits/HasColumns.php`, `src/Contracts/HasMarkup.php`
+- Data objects: `src/Data/*`
 - Schema traits: `src/Schemas/*`
