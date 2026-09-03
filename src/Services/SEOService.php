@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Services;
 
+use AchyutN\LaravelSEO\Data\SitemapImage;
+use AchyutN\LaravelSEO\Data\SitemapVideo;
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +15,20 @@ use ReflectionClass;
 
 final class SEOService
 {
-    /** @return array{url: string|null, imageUrl: string|null, title: string|null, description: string|null, updatedAt: Carbon|null, tags: array<int, string>, author: string|null, publisher: string|null, sitemapImages: array<int, string>, sitemapVideos: array<int, array<string, mixed>>} */
+    /**
+     * @return array{
+     *     url: string|null,
+     *     imageUrl: string|null,
+     *     title: string|null,
+     *     description: string|null,
+     *     updatedAt: Carbon|null,
+     *     tags: array<int, string>,
+     *     author: string|null,
+     *     publisher: string|null,
+     *     sitemapImages: array<int, array{loc: string, title: string|null, caption: string|null, geo_location?: string|null, license?: string|null}>,
+     *     sitemapVideos: array<int, array{thumbnail_loc: string, title: string, description: string, player_loc?: string, content_loc?: string, duration?: int, publication_date?: string, expiration_date?: string, rating?: float, view_count?: int, family_friendly?: bool, requires_subscription?: bool, live?: bool}>
+     * }
+     */
     public function getModelValues(Model $model): array
     {
         /** @var string|null $url */
@@ -32,9 +47,9 @@ final class SEOService
         $author = method_exists($model, 'getAuthorValue') ? $model->getAuthorValue() : null;
         /** @var string|null $publisher */
         $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
-        /** @var array<int, string> $sitemapImages */
+        /** @var array<int, string|SitemapImage|array<string, mixed>> $sitemapImages */
         $sitemapImages = method_exists($model, 'getSitemapImagesValue') ? $model->getSitemapImagesValue() : [];
-        /** @var array<int, array<string, mixed>> $sitemapVideos */
+        /** @var array<int, SitemapVideo|array<string, mixed>> $sitemapVideos */
         $sitemapVideos = method_exists($model, 'getSitemapVideosValue') ? $model->getSitemapVideosValue() : [];
 
         /** @var string $imageURL */
@@ -61,12 +76,43 @@ final class SEOService
             ])
             ->thenReturn();
 
-        /** @var array<int, string> $processedSitemapImages */
+        /** @var array<int, array{loc: string, title: string|null, caption: string|null, geo_location?: string|null, license?: string|null}> $processedSitemapImages */
         $processedSitemapImages = [];
         foreach ($sitemapImages as $sitemapImage) {
+            $rawUrl = null;
+            $imgTitle = null;
+            $imgCaption = null;
+            $geoLocation = null;
+            $license = null;
+
+            if ($sitemapImage instanceof SitemapImage) {
+                $rawUrl = $sitemapImage->getUrl();
+                $imgTitle = $sitemapImage->getTitle();
+                $imgCaption = $sitemapImage->getCaption();
+                $geoLocation = $sitemapImage->getGeoLocation();
+                $license = $sitemapImage->getLicense();
+            } elseif (is_array($sitemapImage)) {
+                $locVal = $sitemapImage['loc'] ?? $sitemapImage['url'] ?? null;
+                $rawUrl = is_string($locVal) ? $locVal : null;
+                $titleVal = $sitemapImage['title'] ?? null;
+                $imgTitle = is_string($titleVal) ? $titleVal : null;
+                $captionVal = $sitemapImage['caption'] ?? null;
+                $imgCaption = is_string($captionVal) ? $captionVal : null;
+                $geoVal = $sitemapImage['geo_location'] ?? null;
+                $geoLocation = is_string($geoVal) ? $geoVal : null;
+                $licenseVal = $sitemapImage['license'] ?? null;
+                $license = is_string($licenseVal) ? $licenseVal : null;
+            } elseif (is_string($sitemapImage)) {
+                $rawUrl = $sitemapImage;
+            }
+
+            if (! filled($rawUrl)) {
+                continue;
+            }
+
             /** @var string|null $processedImageUrl */
             $processedImageUrl = pipeline()
-                ->send($sitemapImage)
+                ->send($rawUrl)
                 ->through([
                     function (?string $imagePath, Closure $next): mixed {
                         if (! filled($imagePath)) {
@@ -89,7 +135,82 @@ final class SEOService
                 ->thenReturn();
 
             if ($processedImageUrl !== null) {
-                $processedSitemapImages[] = $processedImageUrl;
+                $imageData = [
+                    'loc' => $processedImageUrl,
+                    'title' => $imgTitle,
+                    'caption' => $imgCaption,
+                ];
+
+                if ($geoLocation !== null) {
+                    $imageData['geo_location'] = $geoLocation;
+                }
+
+                if ($license !== null) {
+                    $imageData['license'] = $license;
+                }
+
+                $processedSitemapImages[] = $imageData;
+            }
+        }
+
+        /** @var array<int, array{thumbnail_loc: string, title: string, description: string, player_loc?: string, content_loc?: string, duration?: int, publication_date?: string, expiration_date?: string, rating?: float, view_count?: int, family_friendly?: bool, requires_subscription?: bool, live?: bool}> $processedSitemapVideos */
+        $processedSitemapVideos = [];
+        foreach ($sitemapVideos as $video) {
+            if ($video instanceof SitemapVideo) {
+                $processedSitemapVideos[] = $video->toArray();
+            } elseif (
+                isset($video['thumbnail_loc'], $video['title'], $video['description'])
+                && is_string($video['thumbnail_loc'])
+                && is_string($video['title'])
+                && is_string($video['description'])
+            ) {
+                $videoData = [
+                    'thumbnail_loc' => $video['thumbnail_loc'],
+                    'title' => $video['title'],
+                    'description' => $video['description'],
+                ];
+
+                if (isset($video['player_loc']) && is_string($video['player_loc'])) {
+                    $videoData['player_loc'] = $video['player_loc'];
+                }
+
+                if (isset($video['content_loc']) && is_string($video['content_loc'])) {
+                    $videoData['content_loc'] = $video['content_loc'];
+                }
+
+                if (isset($video['duration']) && (is_int($video['duration']) || is_numeric($video['duration']))) {
+                    $videoData['duration'] = (int) $video['duration'];
+                }
+
+                if (isset($video['publication_date']) && is_string($video['publication_date'])) {
+                    $videoData['publication_date'] = $video['publication_date'];
+                }
+
+                if (isset($video['expiration_date']) && is_string($video['expiration_date'])) {
+                    $videoData['expiration_date'] = $video['expiration_date'];
+                }
+
+                if (isset($video['rating']) && (is_float($video['rating']) || is_numeric($video['rating']))) {
+                    $videoData['rating'] = (float) $video['rating'];
+                }
+
+                if (isset($video['view_count']) && (is_int($video['view_count']) || is_numeric($video['view_count']))) {
+                    $videoData['view_count'] = (int) $video['view_count'];
+                }
+
+                if (isset($video['family_friendly']) && is_bool($video['family_friendly'])) {
+                    $videoData['family_friendly'] = $video['family_friendly'];
+                }
+
+                if (isset($video['requires_subscription']) && is_bool($video['requires_subscription'])) {
+                    $videoData['requires_subscription'] = $video['requires_subscription'];
+                }
+
+                if (isset($video['live']) && is_bool($video['live'])) {
+                    $videoData['live'] = $video['live'];
+                }
+
+                $processedSitemapVideos[] = $videoData;
             }
         }
 
@@ -103,7 +224,7 @@ final class SEOService
             'author' => $author,
             'publisher' => $publisher,
             'sitemapImages' => $processedSitemapImages,
-            'sitemapVideos' => $sitemapVideos,
+            'sitemapVideos' => $processedSitemapVideos,
         ];
     }
 
