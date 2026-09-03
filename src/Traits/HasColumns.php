@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Traits;
 
+use AchyutN\LaravelSEO\Data\SitemapImage;
+use AchyutN\LaravelSEO\Data\SitemapVideo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -36,8 +38,8 @@ use Illuminate\Support\Carbon;
  * @method string|null publisherValue()
  * @method string|null publisherUrlValue()
  * @method array<int, string>|null tagsValue()
- * @method array<int, string> sitemapImages()
- * @method array<int, array<string, mixed>> sitemapVideos()
+ * @method array<int, string|SitemapImage|array<string, mixed>> sitemapImages()
+ * @method array<int, SitemapVideo|array<string, mixed>> sitemapVideos()
  * @method string|null urlValue()
  * @method Carbon|null publishedAtValue()
  * @method Carbon|null modifiedAtValue()
