@@ -32,7 +32,9 @@ final class SEOService
     public function getModelValues(Model $model): array
     {
         /** @var string|null $url */
-        $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
+        $url = method_exists($model, 'getUrlValue')
+            ? $model->getUrlValue()
+            : (method_exists($model, 'getURLValue') ? $model->getURLValue() : null);
         /** @var string|null $imagePath */
         $imagePath = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
         /** @var string|null $title */
@@ -52,29 +54,7 @@ final class SEOService
         /** @var array<int, SitemapVideo|array<string, mixed>> $sitemapVideos */
         $sitemapVideos = method_exists($model, 'getSitemapVideosValue') ? $model->getSitemapVideosValue() : [];
 
-        /** @var string $imageURL */
-        $imageURL = pipeline()
-            ->send($imagePath)
-            ->through([
-                function (?string $imagePath, Closure $next): mixed {
-                    if (! filled($imagePath)) {
-                        return null;
-                    }
-
-                    if (preg_match('/^https?:\/\//', $imagePath)) {
-                        return $imagePath;
-                    }
-
-                    return $next($imagePath);
-                },
-                function (string $imagePath): string {
-                    /** @phpstan-var string $url */
-                    $url = config('app.url');
-
-                    return $url.'/storage/'.$imagePath;
-                },
-            ])
-            ->thenReturn();
+        $imageURL = $this->normalizeImageUrl($imagePath);
 
         /** @var array<int, array{loc: string, title: string|null, caption: string|null, geo_location?: string|null, license?: string|null}> $processedSitemapImages */
         $processedSitemapImages = [];
@@ -110,29 +90,7 @@ final class SEOService
                 continue;
             }
 
-            /** @var string|null $processedImageUrl */
-            $processedImageUrl = pipeline()
-                ->send($rawUrl)
-                ->through([
-                    function (?string $imagePath, Closure $next): mixed {
-                        if (! filled($imagePath)) {
-                            return null;
-                        }
-
-                        if (preg_match('/^https?:\/\//', $imagePath)) {
-                            return $imagePath;
-                        }
-
-                        return $next($imagePath);
-                    },
-                    function (string $imagePath): string {
-                        /** @phpstan-var string $url */
-                        $url = config('app.url');
-
-                        return $url.'/storage/'.$imagePath;
-                    },
-                ])
-                ->thenReturn();
+            $processedImageUrl = $this->normalizeImageUrl($rawUrl);
 
             if ($processedImageUrl !== null) {
                 $imageData = [
@@ -284,5 +242,40 @@ final class SEOService
         }
 
         return $ns[1].'\\'.$cls[1];
+    }
+
+    private function normalizeImageUrl(?string $imagePath): ?string
+    {
+        if (! filled($imagePath)) {
+            return null;
+        }
+
+        /** @var string|null $result */
+        $result = pipeline()
+            ->send($imagePath)
+            ->through([
+                function (string $path, Closure $next): mixed {
+                    if (preg_match('/^https?:\/\//i', $path)) {
+                        return $path;
+                    }
+
+                    return $next($path);
+                },
+                function (string $path): string {
+                    /** @var string $appUrlConfig */
+                    $appUrlConfig = config('app.url') ?? '';
+                    $appUrl = mb_rtrim($appUrlConfig, '/');
+                    $cleanPath = mb_ltrim($path, '/');
+
+                    if (str_starts_with($cleanPath, 'storage/')) {
+                        return $appUrl.'/'.$cleanPath;
+                    }
+
+                    return $appUrl.'/storage/'.$cleanPath;
+                },
+            ])
+            ->thenReturn();
+
+        return $result;
     }
 }
