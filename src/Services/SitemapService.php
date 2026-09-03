@@ -61,12 +61,32 @@ final class SitemapService
                 $xml[] = '</image:image>';
             }
 
-            foreach ($sitemapImages as $sitemapImageUrl) {
-                $xml[] = '<image:image>';
-                $xml[] = '<image:loc>'.htmlspecialchars($sitemapImageUrl, ENT_XML1, 'UTF-8').'</image:loc>';
+            foreach ($sitemapImages as $image) {
+                /** @var array{loc: string, title?: string|null, caption?: string|null, geo_location?: string|null, license?: string|null} $image */
+                $imgLoc = $image['loc'];
+                $imgTitle = $image['title'] ?? null;
+                $imgCaption = $image['caption'] ?? null;
+                $imgGeo = $image['geo_location'] ?? null;
+                $imgLicense = $image['license'] ?? null;
+
                 if (count($sitemapImages) === 1) {
-                    $xml[] = '<image:title>'.htmlspecialchars($title ?? '', ENT_XML1, 'UTF-8').'</image:title>';
-                    $xml[] = '<image:caption>'.htmlspecialchars($description ?? '', ENT_XML1, 'UTF-8').'</image:caption>';
+                    $imgTitle ??= $title;
+                    $imgCaption ??= $description;
+                }
+
+                $xml[] = '<image:image>';
+                $xml[] = '<image:loc>'.htmlspecialchars($imgLoc, ENT_XML1, 'UTF-8').'</image:loc>';
+                if ($imgTitle !== null && $imgTitle !== '') {
+                    $xml[] = '<image:title>'.htmlspecialchars($imgTitle, ENT_XML1, 'UTF-8').'</image:title>';
+                }
+                if ($imgCaption !== null && $imgCaption !== '') {
+                    $xml[] = '<image:caption>'.htmlspecialchars($imgCaption, ENT_XML1, 'UTF-8').'</image:caption>';
+                }
+                if ($imgGeo !== null && $imgGeo !== '') {
+                    $xml[] = '<image:geo_location>'.htmlspecialchars($imgGeo, ENT_XML1, 'UTF-8').'</image:geo_location>';
+                }
+                if ($imgLicense !== null && $imgLicense !== '') {
+                    $xml[] = '<image:license>'.htmlspecialchars($imgLicense, ENT_XML1, 'UTF-8').'</image:license>';
                 }
                 $xml[] = '</image:image>';
             }
@@ -74,24 +94,24 @@ final class SitemapService
             foreach ($sitemapVideos as $video) {
                 /** @var array{thumbnail_loc: string, title: string, description: string, content_loc?: string, player_loc?: string, duration?: int|float|string, publication_date?: string, expiration_date?: string, rating?: int|float|string, view_count?: int|float|string, family_friendly?: bool, requires_subscription?: bool, live?: bool} $video */
                 $xml[] = '<video:video>';
-                $xml[] = '<video:thumbnail_loc>'.htmlspecialchars($video['thumbnail_loc'], ENT_XML1, 'UTF-8').'</video:thumbnail_loc>';
-                $xml[] = '<video:title>'.htmlspecialchars($video['title'], ENT_XML1, 'UTF-8').'</video:title>';
-                $xml[] = '<video:description>'.htmlspecialchars($video['description'], ENT_XML1, 'UTF-8').'</video:description>';
+                $xml[] = '<video:thumbnail_loc>'.htmlspecialchars((string) $video['thumbnail_loc'], ENT_XML1, 'UTF-8').'</video:thumbnail_loc>';
+                $xml[] = '<video:title>'.htmlspecialchars((string) $video['title'], ENT_XML1, 'UTF-8').'</video:title>';
+                $xml[] = '<video:description>'.htmlspecialchars((string) $video['description'], ENT_XML1, 'UTF-8').'</video:description>';
 
                 if (isset($video['content_loc'])) {
-                    $xml[] = '<video:content_loc>'.htmlspecialchars($video['content_loc'], ENT_XML1, 'UTF-8').'</video:content_loc>';
+                    $xml[] = '<video:content_loc>'.htmlspecialchars((string) $video['content_loc'], ENT_XML1, 'UTF-8').'</video:content_loc>';
                 }
                 if (isset($video['player_loc'])) {
-                    $xml[] = '<video:player_loc>'.htmlspecialchars($video['player_loc'], ENT_XML1, 'UTF-8').'</video:player_loc>';
+                    $xml[] = '<video:player_loc>'.htmlspecialchars((string) $video['player_loc'], ENT_XML1, 'UTF-8').'</video:player_loc>';
                 }
                 if (isset($video['duration'])) {
                     $xml[] = '<video:duration>'.(int) $video['duration'].'</video:duration>';
                 }
                 if (isset($video['publication_date'])) {
-                    $xml[] = '<video:publication_date>'.htmlspecialchars($video['publication_date'], ENT_XML1, 'UTF-8').'</video:publication_date>';
+                    $xml[] = '<video:publication_date>'.htmlspecialchars((string) $video['publication_date'], ENT_XML1, 'UTF-8').'</video:publication_date>';
                 }
                 if (isset($video['expiration_date'])) {
-                    $xml[] = '<video:expiration_date>'.htmlspecialchars($video['expiration_date'], ENT_XML1, 'UTF-8').'</video:expiration_date>';
+                    $xml[] = '<video:expiration_date>'.htmlspecialchars((string) $video['expiration_date'], ENT_XML1, 'UTF-8').'</video:expiration_date>';
                 }
                 if (isset($video['rating'])) {
                     $xml[] = '<video:rating>'.(float) $video['rating'].'</video:rating>';
