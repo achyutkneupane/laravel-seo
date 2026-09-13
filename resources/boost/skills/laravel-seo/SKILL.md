@@ -28,6 +28,8 @@ You are working in a Laravel app using `achyutn/laravel-seo` (a wrapper around `
 - Customize values using the package's resolution order: `*Value()` method -> `$*Column` property -> default column name (`src/Traits/HasColumns.php`). Prefer `titleValue()`, `descriptionValue()`, `tagsValue()`, `urlValue()`, etc.
 - Schema markup: implement `AchyutN\LaravelSEO\Contracts\HasMarkup` and use one of `BlogSchema`, `PageSchema`, `ProductSchema`. In this repo the method signature is `buildSchema(SchemaCollection $schema): SchemaCollection` and schemas call `$this->resolveSEO()` internally (`src/Contracts/HasMarkup.php`, `src/Schemas/*`).
 - Breadcrumb markup: override `breadcrumbs(): array` to return `AchyutN\LaravelSEO\Data\Breadcrumb` instances (`src/Data/Breadcrumb.php`, `src/Traits/InteractsWithSEO.php`).
+- Multi-image sitemaps: define `sitemapImages(): array` on the model to return string URLs, `AchyutN\LaravelSEO\Data\SitemapImage` DTOs, or associative arrays (`src/Data/SitemapImage.php`, `src/Traits/HasColumns.php`).
+- Video sitemaps: define `sitemapVideos(): array` on the model to return `AchyutN\LaravelSEO\Data\SitemapVideo` DTOs or associative arrays supporting `thumbnail_loc`, `title`, `description`, and `player_loc`/`content_loc` (`src/Data/SitemapVideo.php`, `src/Traits/HasColumns.php`).
 
 ## Examples
 - Install/publish + run backfill:
@@ -43,9 +45,6 @@ php artisan seo:generate
 ## Anti-patterns / Gotchas
 - Route caching: sitemap routes are registered as closures in `SEOProvider` and typically break `php artisan route:cache` in consuming apps (`src/SEOProvider.php`).
 - Config mismatch: `config('seo.sitemap')` exists, but routes are currently hard-coded to `/sitemap.xml` and `/sitemap.txt` (`config/seo.php`, `src/SEOProvider.php`).
-- URL getter mismatch in this repo: `HasColumns` defines `getURLValue()` but other code calls `getUrlValue()`; if URL resolution breaks, check for this mismatch (`src/Contracts/HasColumns.php`, `src/Traits/HasColumns.php`, `src/Traits/InteractsWithSEO.php`, `src/Services/SEOService.php`).
-- `InteractsWithSEO::getDynamicSEOData()` references `$seo` without defining it; test SEO rendering paths that call this method (`src/Traits/InteractsWithSEO.php`).
-- `ResolvedSEO` currently requires non-null `author`/`publisher` strings; make sure your model resolves them (or you will hit a `TypeError`) (`src/Data/ResolvedSEO.php`, `src/Traits/InteractsWithSEO.php`).
 - Migration mismatch risk: the stub stores `meta_keywords` and `robots` as `string`, while the SEO model casts them as `array` (`database/create_seo_table.php.stub`, `src/Models/SEO.php`).
 - Upstream convention risk: this package uses morph name `model`, but the wrapped upstream model docs reference `seoable_*`; verify sitemap/model relations resolve in your app (`database/create_seo_table.php.stub`, `src/Models/SEO.php`, `src/Services/SitemapService.php`).
 
@@ -54,6 +53,7 @@ php artisan seo:generate
 - Provider + routes: `src/SEOProvider.php`
 - Model integration: `src/Traits/InteractsWithSEO.php`
 - Value resolution: `src/Traits/HasColumns.php`
+- Data objects: `src/Data/*`
 - Schema traits: `src/Schemas/*`
 - Sitemap rendering: `src/Services/SitemapService.php`
 - Backfill command: `src/Commands/GenerateSEO.php`

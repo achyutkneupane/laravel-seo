@@ -83,7 +83,7 @@ This package supports multiple schema types using traits:
 - [ProductSchema](#product-schema) for products (e-commerce)
 - [PageSchema](#page-schema) for generic pages
 
-Each schema trait implements a `buildSchema(SchemaCollection $schema, ResolvedSEO $resolvedSEO)` method, which receives resolved SEO data from your model. To use any schema, add the corresponding trait to your model along with the interface `AchyutN\LaravelSEO\Contracts\HasMarkup`.
+Each schema trait implements the `buildSchema(SchemaCollection $schema): SchemaCollection` method required by the `AchyutN\LaravelSEO\Contracts\HasMarkup` interface and resolves SEO data from your model internally. To use any schema, add the corresponding trait to your model along with the interface `AchyutN\LaravelSEO\Contracts\HasMarkup`.
 
 #### Blog Schema
 
@@ -177,6 +177,91 @@ You can access the sitemap in two formats:
 - TXT Sitemap: `/sitemap.txt`
 
 The XML sitemap will be auto-injected in your blade layout along with the metadata.
+
+### Sitemap Images
+
+By default, the XML sitemap includes a single image per URL using the model's `imageValue()` or `$imageColumn`.
+To include multiple images for a URL, define a `sitemapImages(): array` method on your model. You can return:
+
+- An array of string URLs or storage paths: `['https://example.com/images/1.jpg', 'images/2.jpg']`
+- An array of strongly-typed [`SitemapImage`](src/Data/SitemapImage.php) objects: `[SitemapImage::make(url: 'https://...', title: '...', caption: '...')]`
+- An array of associative arrays: `[['loc' => 'https://...', 'title' => '...']]`
+
+When multiple plain string images are provided, only the `<image:loc>` tag is output for each image, following Google's recommended practice. If custom titles, captions, geo-locations, or licenses are provided via `SitemapImage` DTOs or associative arrays, they are rendered accordingly.
+
+```php
+use AchyutN\LaravelSEO\Data\SitemapImage;
+
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    public function sitemapImages(): array
+    {
+        return [
+            SitemapImage::make(
+                url: 'https://example.com/images/post-1.jpg',
+                title: 'Featured Image',
+                caption: 'Post preview image'
+            ),
+            'https://example.com/images/post-2.jpg',
+        ];
+    }
+}
+```
+
+### Sitemap Videos
+
+To include video information (such as YouTube embeds or direct MP4 files) in your XML sitemap, define a `sitemapVideos(): array` method on your model.
+You can return either [`SitemapVideo`](src/Data/SitemapVideo.php) DTOs or raw associative arrays.
+
+Each video entry must include `thumbnail_loc`, `title`, `description`, and either `player_loc` (e.g. YouTube embed URL) or `content_loc` (direct media file URL).
+
+```php
+use AchyutN\LaravelSEO\Data\SitemapVideo;
+
+class Post extends Model
+{
+    use InteractsWithSEO;
+
+    public function sitemapVideos(): array
+    {
+        return [
+            SitemapVideo::make(
+                thumbnailLoc: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+                title: 'How to cook pasta',
+                description: 'A step-by-step guide to cooking perfect pasta.',
+                playerLoc: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                duration: 600,
+                publicationDate: '2024-01-15T08:00:00+00:00',
+                familyFriendly: true,
+            ),
+        ];
+    }
+}
+```
+
+Supported video fields:
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `thumbnail_loc` | Yes | `string` | URL to the video thumbnail image |
+| `title` | Yes | `string` | Title of the video (max 100 chars) |
+| `description` | Yes | `string` | Description of the video (max 2048 chars) |
+| `player_loc` | Yes* | `string` | URL to video player / embed (e.g. YouTube embed URL) |
+| `content_loc` | Yes* | `string` | Direct URL to the video file (.mp4, .mov, etc.) |
+| `duration` | No | `int` | Duration in seconds (1 - 28800) |
+| `publication_date` | No | `string` | ISO 8601 publication date |
+| `expiration_date` | No | `string` | ISO 8601 expiration date |
+| `rating` | No | `float` | Video rating (0.0 - 5.0) |
+| `view_count` | No | `int` | Number of views |
+| `family_friendly` | No | `bool` | Whether the video is family-friendly |
+| `requires_subscription` | No | `bool` | Whether a subscription is required |
+| `live` | No | `bool` | Whether the video is a live stream |
+
+\* At least one of `player_loc` or `content_loc` is required by Google. Entries missing both are skipped, and `SitemapVideo` DTOs throw an `InvalidArgumentException`.
+
+Google's length and range limits are enforced: `title` and `description` are truncated to 100 and 2048 characters respectively, and out-of-range `duration`, `rating`, and `view_count` values are omitted from raw array entries (`SitemapVideo` DTOs reject them).
 
 ### Customization
 

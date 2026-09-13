@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Contracts;
 
+use AchyutN\LaravelSEO\Data\SitemapImage;
+use AchyutN\LaravelSEO\Data\SitemapVideo;
 use Illuminate\Support\Carbon;
 
 interface HasColumns
@@ -46,4 +48,10 @@ interface HasColumns
     public function getAvailabilityValue(): bool;
 
     public function getSkuValue(): ?string;
+
+    /** @return array<int, string|SitemapImage|array<string, mixed>> */
+    public function getSitemapImagesValue(): array;
+
+    /** @return array<int, SitemapVideo|array<string, mixed>> */
+    public function getSitemapVideosValue(): array;
 }
