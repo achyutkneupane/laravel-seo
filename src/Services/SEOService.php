@@ -121,19 +121,33 @@ final class SEOService
                 && is_string($video['thumbnail_loc'])
                 && is_string($video['title'])
                 && is_string($video['description'])
+                && mb_trim($video['thumbnail_loc']) !== ''
+                && mb_trim($video['title']) !== ''
+                && mb_trim($video['description']) !== ''
             ) {
+                $playerLoc = isset($video['player_loc']) && is_string($video['player_loc']) && mb_trim($video['player_loc']) !== ''
+                    ? $video['player_loc']
+                    : null;
+                $contentLoc = isset($video['content_loc']) && is_string($video['content_loc']) && mb_trim($video['content_loc']) !== ''
+                    ? $video['content_loc']
+                    : null;
+
+                if ($playerLoc === null && $contentLoc === null) {
+                    continue;
+                }
+
                 $videoData = [
                     'thumbnail_loc' => $video['thumbnail_loc'],
                     'title' => $video['title'],
                     'description' => $video['description'],
                 ];
 
-                if (isset($video['player_loc']) && is_string($video['player_loc'])) {
-                    $videoData['player_loc'] = $video['player_loc'];
+                if ($playerLoc !== null) {
+                    $videoData['player_loc'] = $playerLoc;
                 }
 
-                if (isset($video['content_loc']) && is_string($video['content_loc'])) {
-                    $videoData['content_loc'] = $video['content_loc'];
+                if ($contentLoc !== null) {
+                    $videoData['content_loc'] = $contentLoc;
                 }
 
                 if (isset($video['duration']) && (is_int($video['duration']) || is_numeric($video['duration']))) {

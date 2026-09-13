@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AchyutN\LaravelSEO\Data;
 
+use InvalidArgumentException;
+
 final readonly class SitemapVideo
 {
     public function __construct(
@@ -20,7 +22,23 @@ final readonly class SitemapVideo
         public ?bool $familyFriendly = null,
         public ?bool $requiresSubscription = null,
         public ?bool $live = null,
-    ) {}
+    ) {
+        if (mb_trim($thumbnailLoc) === '') {
+            throw new InvalidArgumentException('A video sitemap entry requires a non-empty thumbnail_loc.');
+        }
+
+        if (mb_trim($title) === '') {
+            throw new InvalidArgumentException('A video sitemap entry requires a non-empty title.');
+        }
+
+        if (mb_trim($description) === '') {
+            throw new InvalidArgumentException('A video sitemap entry requires a non-empty description.');
+        }
+
+        if ($this->playerLoc === null && $this->contentLoc === null) {
+            throw new InvalidArgumentException('A video sitemap entry requires either player_loc or content_loc.');
+        }
+    }
 
     public static function make(
         string $thumbnailLoc,

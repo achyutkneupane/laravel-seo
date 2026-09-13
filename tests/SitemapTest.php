@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use AchyutN\LaravelSEO\Data\SitemapVideo;
 use AchyutN\LaravelSEO\Services\SitemapService;
 use AchyutN\LaravelSEO\Tests\Model\ArrayVideoBlog;
 use AchyutN\LaravelSEO\Tests\Model\Blog;
 use AchyutN\LaravelSEO\Tests\Model\DTOImageBlog;
 use AchyutN\LaravelSEO\Tests\Model\DTOVideoBlog;
+use AchyutN\LaravelSEO\Tests\Model\InvalidVideoBlog;
 use AchyutN\LaravelSEO\Tests\Model\MultiImageBlog;
 use Illuminate\Support\Carbon;
 
@@ -208,4 +210,29 @@ it('generates dynamic seo data without undefined variable errors', function (): 
     expect($seoData->title)->toBe('Dynamic SEO Post');
     expect($seoData->description)->toBe('Testing dynamic SEO data');
     expect($seoData->url)->toBe('https://example.com/blog/dynamic');
+});
+
+it('skips videos without player_loc or content_loc', function (): void {
+    InvalidVideoBlog::create([
+        'title' => 'Invalid Video Post',
+        'url' => 'https://example.com/blog/invalid-video',
+        'description' => 'Testing invalid video entries',
+        'published_at' => Carbon::now(),
+    ]);
+
+    /** @var SitemapService $sitemapService */
+    $sitemapService = app(SitemapService::class);
+    $content = $sitemapService->toXML()->getContent();
+
+    expect($content)->not()->toContain('Video Without Location');
+    expect($content)->toContain('<video:title>Valid Video</video:title>');
+    expect($content)->toContain('<video:player_loc>https://www.youtube.com/embed/abc123</video:player_loc>');
+});
+
+it('throws when a sitemap video dto has no player or content location', function (): void {
+    expect(fn (): SitemapVideo => SitemapVideo::make(
+        thumbnailLoc: 'https://example.com/thumb.jpg',
+        title: 'No Location',
+        description: 'Missing player and content locations',
+    ))->toThrow(InvalidArgumentException::class, 'A video sitemap entry requires either player_loc or content_loc.');
 });
