@@ -106,7 +106,7 @@ it('generates xml sitemap with SitemapVideo DTO and full metadata', function ():
     expect($content)->toContain('<video:live>no</video:live>');
 });
 
-it('generates xml sitemap with raw associative video arrays for backward compatibility', function (): void {
+it('generates xml sitemap with raw associative video arrays', function (): void {
     ArrayVideoBlog::create([
         'title' => 'Array Video Post',
         'url' => 'https://example.com/blog/video-array',
