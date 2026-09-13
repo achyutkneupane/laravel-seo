@@ -49,11 +49,11 @@ final class SitemapService
 
             $xml[] = '<url>';
             $xml[] = '<loc>'.$this->escapeXml($url).'</loc>';
-            if ($updatedAt) {
+            if ($updatedAt instanceof \Illuminate\Support\Carbon) {
                 $xml[] = '<lastmod>'.$this->escapeXml($updatedAt->toAtomString()).'</lastmod>';
             }
 
-            if ($imageUrl && empty($sitemapImages)) {
+            if ($imageUrl && $sitemapImages === []) {
                 $xml[] = '<image:image>';
                 $xml[] = '<image:loc>'.$this->escapeXml($imageUrl).'</image:loc>';
                 $xml[] = '<image:title>'.$this->escapeXml($title ?? '').'</image:title>';
