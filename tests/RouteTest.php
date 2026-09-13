@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Closure;
 use Illuminate\Support\Facades\Route;
 
 it('registers the sitemap routes as controllers so route caching works', function (): void {

@@ -50,6 +50,7 @@ use Illuminate\Support\Carbon;
  * @method string|null currencyValue()
  * @method bool availabilityValue()
  * @method string|null skuValue()
+ * @method string|null seoArticleBody()
  */
 trait HasColumns
 {
@@ -234,6 +235,11 @@ trait HasColumns
         }
 
         return data_get($this, $this->skuColumn());
+    }
+
+    public function getArticleBodyValue(): ?string
+    {
+        return method_exists($this, 'seoArticleBody') ? $this->seoArticleBody() : null;
     }
 
     public function getSitemapImagesValue(): array

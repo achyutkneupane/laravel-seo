@@ -39,6 +39,7 @@ final class ResolvedSEO
         public ?string $currency = null,
         public bool $isAvailable = false,
         public ?string $sku = null,
+        public ?string $articleBody = null,
     ) {
         //
     }

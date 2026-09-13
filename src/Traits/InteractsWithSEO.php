@@ -91,7 +91,7 @@ trait InteractsWithSEO
             url: $resolvedSEO->url,
             published_time: $resolvedSEO->publishedAt,
             modified_time: $resolvedSEO->modifiedAt,
-            articleBody: method_exists($this, 'seoArticleBody') ? $this->seoArticleBody() : null,
+            articleBody: $this->getArticleBodyValue(),
             section: $resolvedSEO->category,
             tags: $resolvedSEO->tags,
             schema: $schema,
@@ -147,6 +147,7 @@ trait InteractsWithSEO
             currency: $this->getCurrencyValue(),
             isAvailable: $this->getAvailabilityValue(),
             sku: $this->getSkuValue(),
+            articleBody: $this->getArticleBodyValue(),
         );
     }
 
