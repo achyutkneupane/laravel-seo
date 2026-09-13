@@ -53,7 +53,7 @@ final class ResolvedSEO
         $authorData = [
             '@type' => 'Person',
             'name' => $this->author,
-            'url' => $this->authorUrl ?? null,
+            'url' => $this->authorUrl,
         ];
 
         return [$authorData];
@@ -79,7 +79,7 @@ final class ResolvedSEO
         $publisherData = [
             '@type' => 'Organization',
             'name' => $this->publisher,
-            'url' => $this->publisherUrl ?? null,
+            'url' => $this->publisherUrl,
         ];
 
         return [$publisherData];
