@@ -30,7 +30,7 @@ You are working in a Laravel app using `achyutn/laravel-seo` (a wrapper around `
 - Breadcrumb markup: override `breadcrumbs(): array` to return `AchyutN\LaravelSEO\Data\Breadcrumb` instances (`src/Data/Breadcrumb.php`, `src/Traits/InteractsWithSEO.php`).
 - Multi-image sitemaps: define `sitemapImages(): array` on the model to return string URLs, `AchyutN\LaravelSEO\Data\SitemapImage` DTOs, or associative arrays (`src/Data/SitemapImage.php`, `src/Traits/HasColumns.php`).
 - Video sitemaps: define `sitemapVideos(): array` on the model to return `AchyutN\LaravelSEO\Data\SitemapVideo` DTOs or associative arrays supporting `thumbnail_loc`, `title`, `description`, and `player_loc`/`content_loc` (`src/Data/SitemapVideo.php`, `src/Traits/HasColumns.php`).
-- GEO (entity/brand signals) is enabled out of the box: the package emits `Organization` and `WebSite` JSON-LD on every page from `config('seo.schema.organization.*')` and `config('seo.schema.website.*')`. Set `name`, `url`, `logo`, `same_as` (social profiles) and an optional `search_url` so AI engines can identify the brand (`src/Traits/InteractsWithSEO.php`).
+- GEO (entity/brand signals) is opt-in. Enable `seo.schema.organization.enabled` and `seo.schema.website.enabled` and set `name`, `url`, `logo`, `same_as` (social profiles) and an optional `search_url`; the package then emits `Organization` and `WebSite` JSON-LD on model pages (`src/Traits/InteractsWithSEO.php`).
 - AEO (answer engines) hooks, all optional, are read automatically when defined on the model:
   - `seoFaqs(): array<int, array{question: string, answer: string}>` -> `FAQPage` schema (featured snippets / People Also Ask).
   - `seoHowTo(): array{name: string, description?: string, steps: array<int, array{name: string, text: string}>}` -> `HowTo` schema.
@@ -52,8 +52,8 @@ php artisan seo:generate
 - Model setup and customization examples: `references/code-examples.md`.
 
 ## Anti-patterns / Gotchas
-- `resolveSEO()` is null-safe and `seo()` uses `withDefault()`, so models without a backfilled SEO row render defaults instead of crashing; still run `php artisan seo:generate` so sitemap entries and per-record overrides exist.
-- Site-level `Organization`/`WebSite` schema is emitted by default. If your app already emits them (e.g. via `SEOManager` transformers), disable the package versions with `seo.schema.organization.enabled` / `seo.schema.website.enabled` to avoid duplicates.
+- `resolveSEO()` is null-safe, so models without a backfilled SEO row render defaults instead of crashing; still run `php artisan seo:generate` so sitemap entries and per-record overrides exist.
+- Site-level `Organization`/`WebSite` schema is opt-in and off by default. Enable it with `seo.schema.organization.enabled` / `seo.schema.website.enabled`, or leave it off if your app already emits them, to avoid duplicates.
 - AEO hooks are opt-in per model: FAQ/HowTo/Speakable schema only appears when `seoFaqs()`, `seoHowTo()` or `seoSpeakable()` are defined.
 - `og_description` and `og_url` act as fallbacks when `meta_description`/`canonical` are empty, because the upstream `SEOData` exposes a single description/url pair.
 - Upstream convention: this package and the wrapped upstream model both use the morph name `model`, so relations resolve. Verify sitemap/model relations if you rename the morph (`database/create_seo_table.php.stub`, `src/Models/SEO.php`, `src/Services/SitemapService.php`).

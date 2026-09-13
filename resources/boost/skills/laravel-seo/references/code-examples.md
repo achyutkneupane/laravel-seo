@@ -389,7 +389,7 @@ return [
 ## Anti-patterns / Gotchas
 - If your tests/app create models using `InteractsWithSEO`, ensure the `seo` table exists (this package publishes a migration stub via `--tag="laravel-seo"`).
 - Sitemap routes are route-cache compatible and use the `seo.sitemap` / `seo.sitemap_txt` config paths.
-- Site-level `Organization`/`WebSite` schema is on by default; disable via `seo.schema.organization.enabled` / `seo.schema.website.enabled` if your app already emits them.
+- Site-level `Organization`/`WebSite` schema is opt-in and off by default; enable it via `seo.schema.organization.enabled` / `seo.schema.website.enabled` if your app does not already emit them.
 - If sitemap rendering returns empty entries, confirm the SEO model relation used by the sitemap (`with('model')`) matches your DB morph columns and upstream model conventions.
 
 ## References

@@ -265,7 +265,7 @@ Google's length and range limits are enforced: `title` and `description` are tru
 
 ### Site-level Schema (GEO)
 
-The package emits site-level `Organization` and `WebSite` JSON-LD on every page so AI search engines can identify and cite your brand. Configure them once in `config/seo.php`:
+The package can emit site-level `Organization` and `WebSite` JSON-LD on every page so AI search engines can identify and cite your brand. It is opt-in; enable it once in `config/seo.php`:
 
 ```php
 'schema' => [
@@ -286,7 +286,7 @@ The package emits site-level `Organization` and `WebSite` JSON-LD on every page 
 ],
 ```
 
-Set `enabled` to `false` if your application already emits these entities (for example through a `SEOManager` transformer).
+Set `enabled` to `true` to activate it, or leave it `false` if your application already emits these entities (for example through a `SEOManager` transformer).
 
 ### Answer Engine Schema (AEO)
 
