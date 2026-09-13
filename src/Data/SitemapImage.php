@@ -54,16 +54,4 @@ final readonly class SitemapImage
     {
         return $this->license;
     }
-
-    /** @return array{loc: string, title: string|null, caption: string|null, geo_location: string|null, license: string|null} */
-    public function toArray(): array
-    {
-        return [
-            'loc' => $this->url,
-            'title' => $this->title,
-            'caption' => $this->caption,
-            'geo_location' => $this->geoLocation,
-            'license' => $this->license,
-        ];
-    }
 }
