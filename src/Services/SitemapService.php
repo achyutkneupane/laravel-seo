@@ -99,19 +99,19 @@ final class SitemapService
                 $xml[] = '<video:description>'.$this->escapeXml((string) $video['description']).'</video:description>';
 
                 if (isset($video['content_loc'])) {
-                    $xml[] = '<video:content_loc>'.$this->escapeXml((string) $video['content_loc']).'</video:content_loc>';
+                    $xml[] = '<video:content_loc>'.$this->escapeXml($video['content_loc']).'</video:content_loc>';
                 }
                 if (isset($video['player_loc'])) {
-                    $xml[] = '<video:player_loc>'.$this->escapeXml((string) $video['player_loc']).'</video:player_loc>';
+                    $xml[] = '<video:player_loc>'.$this->escapeXml($video['player_loc']).'</video:player_loc>';
                 }
                 if (isset($video['duration'])) {
                     $xml[] = '<video:duration>'.(int) $video['duration'].'</video:duration>';
                 }
                 if (isset($video['publication_date'])) {
-                    $xml[] = '<video:publication_date>'.$this->escapeXml((string) $video['publication_date']).'</video:publication_date>';
+                    $xml[] = '<video:publication_date>'.$this->escapeXml($video['publication_date']).'</video:publication_date>';
                 }
                 if (isset($video['expiration_date'])) {
-                    $xml[] = '<video:expiration_date>'.$this->escapeXml((string) $video['expiration_date']).'</video:expiration_date>';
+                    $xml[] = '<video:expiration_date>'.$this->escapeXml($video['expiration_date']).'</video:expiration_date>';
                 }
                 if (isset($video['rating'])) {
                     $xml[] = '<video:rating>'.(float) $video['rating'].'</video:rating>';
