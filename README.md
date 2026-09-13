@@ -259,7 +259,9 @@ Supported video fields:
 | `requires_subscription` | No | `bool` | Whether a subscription is required |
 | `live` | No | `bool` | Whether the video is a live stream |
 
-\* At least one of `player_loc` or `content_loc` is recommended by Google.
+\* At least one of `player_loc` or `content_loc` is required by Google. Entries missing both are skipped, and `SitemapVideo` DTOs throw an `InvalidArgumentException`.
+
+Google's length and range limits are enforced: `title` and `description` are truncated to 100 and 2048 characters respectively, and out-of-range `duration`, `rating`, and `view_count` values are omitted from raw array entries (`SitemapVideo` DTOs reject them).
 
 ### Customization
 
