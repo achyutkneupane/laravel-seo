@@ -26,7 +26,8 @@ final class SEOService
      *     author: string|null,
      *     publisher: string|null,
      *     sitemapImages: array<int, array{loc: string, title: string|null, caption: string|null, geo_location?: string|null, license?: string|null}>,
-     *     sitemapVideos: array<int, array{thumbnail_loc: string, title: string, description: string, player_loc?: string, content_loc?: string, duration?: int, publication_date?: string, expiration_date?: string, rating?: float, view_count?: int, family_friendly?: bool, requires_subscription?: bool, live?: bool}>
+     *     sitemapVideos: array<int, array{thumbnail_loc: string, title: string, description: string, player_loc?: string, content_loc?: string, duration?: int, publication_date?: string, expiration_date?: string, rating?: float, view_count?: int, family_friendly?: bool, requires_subscription?: bool, live?: bool}>,
+     *     alternates: array<int, array{hreflang: string, url: string}>
      * }
      */
     public function getModelValues(Model $model): array
@@ -53,6 +54,30 @@ final class SEOService
         $sitemapImages = method_exists($model, 'getSitemapImagesValue') ? $model->getSitemapImagesValue() : [];
         /** @var array<int, SitemapVideo|array<string, mixed>> $sitemapVideos */
         $sitemapVideos = method_exists($model, 'getSitemapVideosValue') ? $model->getSitemapVideosValue() : [];
+
+        /** @var array<int, array{hreflang: string, url: string}> $alternates */
+        $alternates = [];
+        if (method_exists($model, 'seoAlternates')) {
+            /** @var mixed $rawAlternates */
+            $rawAlternates = $model->seoAlternates();
+
+            if (is_iterable($rawAlternates)) {
+                foreach ($rawAlternates as $alternate) {
+                    if (! is_array($alternate)) {
+                        continue;
+                    }
+
+                    $hreflang = $alternate['hreflang'] ?? null;
+                    $href = $alternate['url'] ?? null;
+
+                    if (! is_string($hreflang) || ! is_string($href)) {
+                        continue;
+                    }
+
+                    $alternates[] = ['hreflang' => $hreflang, 'url' => $href];
+                }
+            }
+        }
 
         $imageURL = $this->normalizeImageUrl($imagePath);
 
@@ -206,6 +231,7 @@ final class SEOService
             'publisher' => $publisher,
             'sitemapImages' => $processedSitemapImages,
             'sitemapVideos' => $processedSitemapVideos,
+            'alternates' => $alternates,
         ];
     }
 

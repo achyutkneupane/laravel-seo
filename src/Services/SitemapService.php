@@ -41,6 +41,7 @@ final class SitemapService
                 'updatedAt' => $updatedAt,
                 'sitemapImages' => $sitemapImages,
                 'sitemapVideos' => $sitemapVideos,
+                'alternates' => $alternates,
             ] = $this->service->getModelValues($model);
 
             if ($url === null) {
@@ -51,6 +52,10 @@ final class SitemapService
             $xml[] = '<loc>'.$this->escapeXml($url).'</loc>';
             if ($updatedAt instanceof \Illuminate\Support\Carbon) {
                 $xml[] = '<lastmod>'.$this->escapeXml($updatedAt->toAtomString()).'</lastmod>';
+            }
+
+            foreach ($alternates as $alternate) {
+                $xml[] = '<xhtml:link rel="alternate" hreflang="'.$this->escapeXml($alternate['hreflang']).'" href="'.$this->escapeXml($alternate['url']).'"/>';
             }
 
             if ($imageUrl && $sitemapImages === []) {

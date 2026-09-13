@@ -11,6 +11,7 @@ use AchyutN\LaravelSEO\Tests\Model\DTOVideoBlog;
 use AchyutN\LaravelSEO\Tests\Model\InvalidVideoBlog;
 use AchyutN\LaravelSEO\Tests\Model\LongVideoBlog;
 use AchyutN\LaravelSEO\Tests\Model\MultiImageBlog;
+use AchyutN\LaravelSEO\Tests\Model\RichBlog;
 use Illuminate\Support\Carbon;
 
 it('generates xml sitemap with default single image, title and description', function (): void {
@@ -306,4 +307,20 @@ it('throws for out of range metadata in sitemap video dtos', function (): void {
 
     expect(fn (): SitemapVideo => SitemapVideo::make(...[...$base, 'viewCount' => -1]))
         ->toThrow(InvalidArgumentException::class, 'Video view count cannot be negative.');
+});
+
+it('emits hreflang alternates in the xml sitemap', function (): void {
+    RichBlog::create([
+        'title' => 'Alternate Post',
+        'url' => 'https://example.com/blog/alternate',
+        'description' => 'Testing alternates',
+        'published_at' => Carbon::now(),
+    ]);
+
+    /** @var SitemapService $sitemapService */
+    $sitemapService = app(SitemapService::class);
+    $content = $sitemapService->toXML()->getContent();
+
+    expect($content)->toContain('<xhtml:link rel="alternate" hreflang="en" href="https://example.com/en"/>')
+        ->and($content)->toContain('<xhtml:link rel="alternate" hreflang="fr" href="https://example.com/fr"/>');
 });
