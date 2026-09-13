@@ -151,7 +151,10 @@ final class SEOService
                 }
 
                 if (isset($video['duration']) && (is_int($video['duration']) || is_numeric($video['duration']))) {
-                    $videoData['duration'] = (int) $video['duration'];
+                    $duration = (int) $video['duration'];
+                    if ($duration >= 1 && $duration <= 28800) {
+                        $videoData['duration'] = $duration;
+                    }
                 }
 
                 if (isset($video['publication_date']) && is_string($video['publication_date'])) {
@@ -163,11 +166,17 @@ final class SEOService
                 }
 
                 if (isset($video['rating']) && (is_float($video['rating']) || is_numeric($video['rating']))) {
-                    $videoData['rating'] = (float) $video['rating'];
+                    $rating = (float) $video['rating'];
+                    if ($rating >= 0.0 && $rating <= 5.0) {
+                        $videoData['rating'] = $rating;
+                    }
                 }
 
                 if (isset($video['view_count']) && (is_int($video['view_count']) || is_numeric($video['view_count']))) {
-                    $videoData['view_count'] = (int) $video['view_count'];
+                    $viewCount = (int) $video['view_count'];
+                    if ($viewCount >= 0) {
+                        $videoData['view_count'] = $viewCount;
+                    }
                 }
 
                 if (isset($video['family_friendly']) && is_bool($video['family_friendly'])) {

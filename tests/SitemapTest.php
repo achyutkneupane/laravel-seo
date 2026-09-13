@@ -9,6 +9,7 @@ use AchyutN\LaravelSEO\Tests\Model\Blog;
 use AchyutN\LaravelSEO\Tests\Model\DTOImageBlog;
 use AchyutN\LaravelSEO\Tests\Model\DTOVideoBlog;
 use AchyutN\LaravelSEO\Tests\Model\InvalidVideoBlog;
+use AchyutN\LaravelSEO\Tests\Model\LongVideoBlog;
 use AchyutN\LaravelSEO\Tests\Model\MultiImageBlog;
 use Illuminate\Support\Carbon;
 
@@ -235,4 +236,57 @@ it('throws when a sitemap video dto has no player or content location', function
         title: 'No Location',
         description: 'Missing player and content locations',
     ))->toThrow(InvalidArgumentException::class, 'A video sitemap entry requires either player_loc or content_loc.');
+});
+
+it('truncates video title and description to google limits', function (): void {
+    LongVideoBlog::create([
+        'title' => 'Long Video Post',
+        'url' => 'https://example.com/blog/long-video',
+        'description' => 'Testing video truncation',
+        'published_at' => Carbon::now(),
+    ]);
+
+    /** @var SitemapService $sitemapService */
+    $sitemapService = app(SitemapService::class);
+    $content = $sitemapService->toXML()->getContent();
+
+    expect($content)->toContain('<video:title>'.str_repeat('T', 100).'</video:title>');
+    expect($content)->not()->toContain(str_repeat('T', 101));
+    expect($content)->toContain('<video:description>'.str_repeat('D', 2048).'</video:description>');
+    expect($content)->not()->toContain(str_repeat('D', 2049));
+});
+
+it('omits out of range metadata from raw video arrays', function (): void {
+    LongVideoBlog::create([
+        'title' => 'Out Of Range Video Post',
+        'url' => 'https://example.com/blog/out-of-range-video',
+        'description' => 'Testing out of range metadata',
+        'published_at' => Carbon::now(),
+    ]);
+
+    /** @var SitemapService $sitemapService */
+    $sitemapService = app(SitemapService::class);
+    $content = $sitemapService->toXML()->getContent();
+
+    expect($content)->not()->toContain('<video:duration>');
+    expect($content)->not()->toContain('<video:rating>');
+    expect($content)->not()->toContain('<video:view_count>');
+});
+
+it('throws for out of range metadata in sitemap video dtos', function (): void {
+    $base = [
+        'thumbnailLoc' => 'https://example.com/thumb.jpg',
+        'title' => 'Invalid Metadata',
+        'description' => 'Testing invalid metadata',
+        'playerLoc' => 'https://www.youtube.com/embed/abc123',
+    ];
+
+    expect(fn (): SitemapVideo => SitemapVideo::make(...[...$base, 'duration' => 0]))
+        ->toThrow(InvalidArgumentException::class, 'Video duration must be between 1 and 28800 seconds.');
+
+    expect(fn (): SitemapVideo => SitemapVideo::make(...[...$base, 'rating' => 5.5]))
+        ->toThrow(InvalidArgumentException::class, 'Video rating must be between 0.0 and 5.0.');
+
+    expect(fn (): SitemapVideo => SitemapVideo::make(...[...$base, 'viewCount' => -1]))
+        ->toThrow(InvalidArgumentException::class, 'Video view count cannot be negative.');
 });

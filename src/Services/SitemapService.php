@@ -95,8 +95,8 @@ final class SitemapService
                 /** @var array{thumbnail_loc: string, title: string, description: string, content_loc?: string, player_loc?: string, duration?: int|float|string, publication_date?: string, expiration_date?: string, rating?: int|float|string, view_count?: int|float|string, family_friendly?: bool, requires_subscription?: bool, live?: bool} $video */
                 $xml[] = '<video:video>';
                 $xml[] = '<video:thumbnail_loc>'.$this->escapeXml((string) $video['thumbnail_loc']).'</video:thumbnail_loc>';
-                $xml[] = '<video:title>'.$this->escapeXml((string) $video['title']).'</video:title>';
-                $xml[] = '<video:description>'.$this->escapeXml((string) $video['description']).'</video:description>';
+                $xml[] = '<video:title>'.$this->escapeXml(mb_substr($video['title'], 0, 100)).'</video:title>';
+                $xml[] = '<video:description>'.$this->escapeXml(mb_substr($video['description'], 0, 2048)).'</video:description>';
 
                 if (isset($video['content_loc'])) {
                     $xml[] = '<video:content_loc>'.$this->escapeXml($video['content_loc']).'</video:content_loc>';

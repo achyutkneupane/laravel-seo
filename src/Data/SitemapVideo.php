@@ -38,6 +38,18 @@ final readonly class SitemapVideo
         if ($this->playerLoc === null && $this->contentLoc === null) {
             throw new InvalidArgumentException('A video sitemap entry requires either player_loc or content_loc.');
         }
+
+        if ($duration !== null && ($duration < 1 || $duration > 28800)) {
+            throw new InvalidArgumentException('Video duration must be between 1 and 28800 seconds.');
+        }
+
+        if ($rating !== null && ($rating < 0.0 || $rating > 5.0)) {
+            throw new InvalidArgumentException('Video rating must be between 0.0 and 5.0.');
+        }
+
+        if ($viewCount !== null && $viewCount < 0) {
+            throw new InvalidArgumentException('Video view count cannot be negative.');
+        }
     }
 
     public static function make(
