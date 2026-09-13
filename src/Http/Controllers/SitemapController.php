@@ -9,13 +9,13 @@ use Illuminate\Http\Response;
 
 final class SitemapController
 {
-    public function xml(SitemapService $service): Response
+    public function xml(): Response
     {
-        return $service->toXML();
+        return app(SitemapService::class)->toXML();
     }
 
-    public function txt(SitemapService $service): Response
+    public function txt(): Response
     {
-        return $service->toTXT();
+        return app(SitemapService::class)->toTXT();
     }
 }
