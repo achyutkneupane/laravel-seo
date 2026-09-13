@@ -89,3 +89,19 @@ it('omits product offers when no price is available', function (): void {
     expect($productEntity)->not->toBeNull()
         ->and($productEntity)->not->toHaveKey('offers');
 });
+
+it('trims long meta descriptions when a limit is configured', function (): void {
+    config()->set('seo.description.limit', 20);
+
+    $blog = SchemaBlog::create([
+        'title' => 'Long Description',
+        'url' => 'https://example.com/blog/long',
+        'description' => 'This is a very long description that should be trimmed at a word boundary.',
+        'published_at' => Carbon::now(),
+    ]);
+
+    $description = $blog->getDynamicSEOData()->description;
+
+    expect($description)->not->toBeNull()
+        ->and(mb_strlen((string) $description))->toBeLessThanOrEqual(20);
+});

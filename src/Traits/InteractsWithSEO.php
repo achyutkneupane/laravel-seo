@@ -109,7 +109,7 @@ trait InteractsWithSEO
         $seo = $this->seo;
 
         $title = $seo?->meta_title ?? $this->getTitleValue() ?? '';
-        $description = $seo?->meta_description ?? $seo?->og_description ?? $this->getDescriptionValue();
+        $description = $this->limitDescription($seo?->meta_description ?? $seo?->og_description ?? $this->getDescriptionValue());
         $url = $seo?->canonical ?? $seo?->og_url ?? $this->getUrlValue() ?? null;
         $category = $this->getCategoryValue() ?? 'Blog';
         $tags = $seo?->meta_keywords ?? $this->getTagsValue() ?? [];
@@ -209,6 +209,24 @@ trait InteractsWithSEO
         $url = config('seo.schema.organization.url') ?? config('app.url');
 
         return mb_rtrim((string) $url, '/');
+    }
+
+    protected function limitDescription(?string $description): ?string
+    {
+        $limit = config('seo.description.limit');
+
+        if (! is_int($limit) || $limit <= 0 || $description === null || mb_strlen($description) <= $limit) {
+            return $description;
+        }
+
+        $truncated = mb_substr($description, 0, $limit);
+        $lastSpace = mb_strrpos($truncated, ' ');
+
+        if ($lastSpace !== false && $lastSpace > 0) {
+            $truncated = mb_substr($truncated, 0, $lastSpace);
+        }
+
+        return mb_rtrim($truncated, " \t\n\r\0\x0B.,;:-");
     }
 
     /**

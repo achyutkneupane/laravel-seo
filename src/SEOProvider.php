@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AchyutN\LaravelSEO;
 
 use AchyutN\LaravelSEO\Commands\GenerateSEO;
+use AchyutN\LaravelSEO\Http\Controllers\RobotsController;
 use AchyutN\LaravelSEO\Http\Controllers\SitemapController;
 use Composer\InstalledVersions;
 use Illuminate\Foundation\Console\AboutCommand;
@@ -41,6 +42,10 @@ final class SEOProvider extends BaseServiceProvider
 
         Route::get($this->routePath(config('seo.sitemap_txt'), '/sitemap.txt'), [SitemapController::class, 'txt'])
             ->name('laravel-seo.sitemap.txt');
+
+        if ((bool) config('seo.robots_txt.enabled', false)) {
+            Route::get('/robots.txt', RobotsController::class)->name('laravel-seo.robots');
+        }
     }
 
     private function routePath(mixed $configured, string $default): string

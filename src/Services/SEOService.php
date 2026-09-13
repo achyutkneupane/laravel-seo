@@ -238,41 +238,47 @@ final class SEOService
     /** @return array<int, class-string<Model>> */
     public function seoModels(): array
     {
-        $path = app_path('Models');
+        $paths = config('seo.model_paths', [app_path('Models')]);
+
+        if (! is_array($paths)) {
+            $paths = [$paths];
+        }
 
         $models = [];
 
-        if (! is_dir($path)) {
-            return $models;
+        foreach ($paths as $path) {
+            if (! is_string($path) || ! is_dir($path)) {
+                continue;
+            }
+
+            foreach (File::allFiles($path) as $file) {
+                $class = $this->classFromFile($file->getPathname());
+                if (! $class) {
+                    continue;
+                }
+                if (! class_exists($class)) {
+                    continue;
+                }
+
+                $reflection = new ReflectionClass($class);
+                if ($reflection->isAbstract()) {
+                    continue;
+                }
+                if (! is_subclass_of($class, Model::class)) {
+                    continue;
+                }
+
+                if (in_array(
+                    InteractsWithSEO::class,
+                    class_uses_recursive($class),
+                    true
+                )) {
+                    $models[] = $class;
+                }
+            }
         }
 
-        foreach (File::allFiles($path) as $file) {
-            $class = $this->classFromFile($file->getPathname());
-            if (! $class) {
-                continue;
-            }
-            if (! class_exists($class)) {
-                continue;
-            }
-
-            $reflection = new ReflectionClass($class);
-            if ($reflection->isAbstract()) {
-                continue;
-            }
-            if (! is_subclass_of($class, Model::class)) {
-                continue;
-            }
-
-            if (in_array(
-                InteractsWithSEO::class,
-                class_uses_recursive($class),
-                true
-            )) {
-                $models[] = $class;
-            }
-        }
-
-        return array_unique($models);
+        return array_values(array_unique($models));
     }
 
     private function classFromFile(string $path): ?string
