@@ -278,8 +278,14 @@ final class SEOService
             ->send($imagePath)
             ->through([
                 function (string $path, Closure $next): mixed {
+                    $path = mb_trim($path);
+
                     if (preg_match('/^https?:\/\//i', $path)) {
                         return $path;
+                    }
+
+                    if (str_starts_with($path, '//')) {
+                        return 'https:'.$path;
                     }
 
                     return $next($path);

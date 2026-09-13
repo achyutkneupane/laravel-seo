@@ -198,6 +198,23 @@ it('correctly normalizes paths with leading slashes and storage prefix', functio
     expect($content)->not()->toContain('storage/storage/');
 });
 
+it('normalizes protocol relative image urls', function (): void {
+    Blog::create([
+        'title' => 'Protocol Relative Post',
+        'url' => 'https://example.com/blog/protocol-relative',
+        'description' => 'Testing protocol relative images',
+        'image' => '//cdn.example.com/photo.jpg',
+        'published_at' => Carbon::now(),
+    ]);
+
+    /** @var SitemapService $sitemapService */
+    $sitemapService = app(SitemapService::class);
+    $content = $sitemapService->toXML()->getContent();
+
+    expect($content)->toContain('<image:loc>https://cdn.example.com/photo.jpg</image:loc>');
+    expect($content)->not()->toContain('/storage/cdn.example.com');
+});
+
 it('generates dynamic seo data without undefined variable errors', function (): void {
     $blog = Blog::create([
         'title' => 'Dynamic SEO Post',
