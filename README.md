@@ -263,6 +263,92 @@ Supported video fields:
 
 Google's length and range limits are enforced: `title` and `description` are truncated to 100 and 2048 characters respectively, and out-of-range `duration`, `rating`, and `view_count` values are omitted from raw array entries (`SitemapVideo` DTOs reject them).
 
+### Site-level Schema (GEO)
+
+The package emits site-level `Organization` and `WebSite` JSON-LD on every page so AI search engines can identify and cite your brand. Configure them once in `config/seo.php`:
+
+```php
+'schema' => [
+    'organization' => [
+        'enabled' => true,
+        'name' => config('app.name'),
+        'url' => config('app.url'),
+        'logo' => 'https://example.com/logo.png',
+        'same_as' => [
+            'https://x.com/acme',
+            'https://www.linkedin.com/company/acme',
+        ],
+    ],
+    'website' => [
+        'enabled' => true,
+        'search_url' => '/blog?search={search_term_string}',
+    ],
+],
+```
+
+Set `enabled` to `false` if your application already emits these entities (for example through a `SEOManager` transformer).
+
+### Answer Engine Schema (AEO)
+
+Define any of the following optional methods on your model and the matching schema is added automatically:
+
+```php
+/** @return array<int, array{question: string, answer: string}> */
+public function seoFaqs(): array
+{
+    return [
+        ['question' => 'What is Laravel SEO?', 'answer' => 'A package that generates metadata and schema from models.'],
+    ];
+}
+
+/** @return array{name: string, description: string, steps: array<int, array{name: string, text: string}>} */
+public function seoHowTo(): array
+{
+    return [
+        'name' => 'Install the package',
+        'steps' => [
+            ['name' => 'Require', 'text' => 'Run composer require achyutn/laravel-seo.'],
+            ['name' => 'Backfill', 'text' => 'Run php artisan seo:generate.'],
+        ],
+    ];
+}
+
+/** @return array<int, string> */
+public function seoSpeakable(): array
+{
+    return ['#summary', '.article-body'];
+}
+```
+
+- `seoFaqs()` emits `FAQPage` schema (featured snippets / People Also Ask).
+- `seoHowTo()` emits `HowTo` schema.
+- `seoSpeakable()` emits `SpeakableSpecification` for voice assistants.
+
+### Internationalisation and Article Depth
+
+```php
+public function seoLocale(): string
+{
+    return app()->getLocale();
+}
+
+/** @return array<int, array{hreflang: string, url: string}> */
+public function seoAlternates(): array
+{
+    return [
+        ['hreflang' => 'en', 'url' => url('/en/blog/'.$this->getKey())],
+        ['hreflang' => 'fr', 'url' => url('/fr/blog/'.$this->getKey())],
+    ];
+}
+
+public function seoArticleBody(): string
+{
+    return strip_tags((string) $this->content);
+}
+```
+
+`seoAlternates()` is emitted both as `<link rel="alternate" hreflang>` tags and as `<xhtml:link>` entries in the XML sitemap. `seoArticleBody()` feeds the `articleBody` field so AI engines can cite the full text.
+
 ### Customization
 
 This package resolves SEO data using a simple priority order:
