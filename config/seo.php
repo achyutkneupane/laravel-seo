@@ -38,12 +38,13 @@ return [
     ],
 
     /*
-     * Site-level structured data that is emitted on every page. Providing these
-     * values gives AI and answer engines a stable brand entity to cite.
+     * Site-level structured data that can be emitted on every page. Disabled by
+     * default; enable it (or disable an app-level equivalent) to give AI and
+     * answer engines a stable brand entity to cite.
      */
     'schema' => [
         'organization' => [
-            'enabled' => true,
+            'enabled' => false,
             'type' => 'Organization',
             'name' => config('app.name'),
             'url' => config('app.url'),
@@ -51,7 +52,7 @@ return [
             'same_as' => [],
         ],
         'website' => [
-            'enabled' => true,
+            'enabled' => false,
             // A search URL template, e.g. '/blog?search={search_term_string}'.
             'search_url' => null,
         ],

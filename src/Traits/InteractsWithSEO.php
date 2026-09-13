@@ -49,7 +49,7 @@ trait InteractsWithSEO
      */
     public function seo(): MorphOne
     {
-        return $this->morphOne(SEO::class, 'model')->withDefault();
+        return $this->morphOne(SEO::class, 'model');
     }
 
     /**
