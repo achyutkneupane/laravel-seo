@@ -349,6 +349,32 @@ public function seoArticleBody(): string
 
 `seoAlternates()` is emitted both as `<link rel="alternate" hreflang>` tags and as `<xhtml:link>` entries in the XML sitemap. `seoArticleBody()` feeds the `articleBody` field so AI engines can cite the full text.
 
+### Managed robots.txt, Model Discovery and Description Limits
+
+`config/seo.php` exposes a few operational extras:
+
+```php
+// Directories scanned by `php artisan seo:generate` for InteractsWithSEO models.
+'model_paths' => [
+    app_path('Models'),
+],
+
+// Serve a managed /robots.txt that always includes a Sitemap directive.
+'robots_txt' => [
+    'enabled' => true,
+    'user_agent' => '*',
+    'allow' => ['/'],
+    'disallow' => ['/admin', '/pulse'],
+],
+
+// Optionally trim long meta descriptions on a word boundary.
+'description' => [
+    'limit' => 160,
+],
+```
+
+The `robots_txt` endpoint is disabled by default so it never conflicts with an application-defined robots file. Enable it on greenfield projects.
+
 ### Customization
 
 This package resolves SEO data using a simple priority order:

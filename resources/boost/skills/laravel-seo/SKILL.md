@@ -38,6 +38,7 @@ You are working in a Laravel app using `achyutn/laravel-seo` (a wrapper around `
 - Internationalisation hooks: `seoLocale(): string` sets the SEO locale, and `seoAlternates(): array<int, array{hreflang: string, url: string}>` emits `hreflang` alternates in both the page head and the XML sitemap.
 - Article depth for AI: `seoArticleBody(): string` feeds the `articleBody` field of the article schema. Override `seoType(): string` to change the Open Graph/article type (defaults to `article`).
 - Sitemap endpoints are route-cache compatible and use the configured paths (`seo.sitemap`, `seo.sitemap_txt`) via `AchyutN\LaravelSEO\Http\Controllers\SitemapController` (`src/SEOProvider.php`).
+- Configuration extras (`config/seo.php`): `seo.model_paths` controls which directories `seo:generate` scans; set `seo.robots_txt.enabled` to serve a managed `/robots.txt` containing a `Sitemap:` directive; set `seo.description.limit` to trim long meta descriptions on a word boundary.
 
 ## Examples
 - Install/publish + run backfill:

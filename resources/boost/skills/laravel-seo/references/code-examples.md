@@ -368,6 +368,18 @@ return [
     'sitemap' => '/sitemap.xml',
     'sitemap_txt' => '/sitemap.txt',
     'database' => config('database.default', 'mysql'),
+    'model_paths' => [
+        app_path('Models'),
+    ],
+    'robots_txt' => [
+        'enabled' => true,
+        'user_agent' => '*',
+        'allow' => ['/'],
+        'disallow' => ['/admin'],
+    ],
+    'description' => [
+        'limit' => 160,
+    ],
     'title' => [
         'suffix' => sprintf(' - %s', config('app.name')),
     ],
