@@ -31,6 +31,13 @@ final class Alternates
                 continue;
             }
 
+            $hreflang = trim($hreflang);
+            $url = trim($url);
+
+            if ($hreflang === '' || $url === '') {
+                continue;
+            }
+
             $normalized[] = ['hreflang' => $hreflang, 'url' => $url];
         }
 
