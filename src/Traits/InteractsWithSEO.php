@@ -9,6 +9,7 @@ use AchyutN\LaravelSEO\Data\Breadcrumb;
 use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use AchyutN\LaravelSEO\Models\SEO;
 use AchyutN\LaravelSEO\Services\SEOService;
+use AchyutN\LaravelSEO\Support\ImageUrl;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use RalphJSmit\Laravel\SEO\Schema\BreadcrumbListSchema;
@@ -115,7 +116,7 @@ trait InteractsWithSEO
         $fallbackImage = $this->getImageValue() ?? null;
         $image = $seoImage ?? $fallbackImage;
 
-        $imageURL = preg_match('/^https?:\/\//', (string) $image) ? (string) $image : ($image ? '/storage/'.$image : null);
+        $imageURL = ImageUrl::normalize($image);
 
         return new ResolvedSEO(
             model: $this,

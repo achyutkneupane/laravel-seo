@@ -6,8 +6,8 @@ namespace AchyutN\LaravelSEO\Services;
 
 use AchyutN\LaravelSEO\Data\SitemapImage;
 use AchyutN\LaravelSEO\Data\SitemapVideo;
+use AchyutN\LaravelSEO\Support\ImageUrl;
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
-use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
@@ -79,7 +79,7 @@ final class SEOService
             }
         }
 
-        $imageURL = $this->normalizeImageUrl($imagePath);
+        $imageURL = ImageUrl::normalize($imagePath);
 
         /** @var array<int, array{loc: string, title: string|null, caption: string|null, geo_location?: string|null, license?: string|null}> $processedSitemapImages */
         $processedSitemapImages = [];
@@ -115,7 +115,7 @@ final class SEOService
                 continue;
             }
 
-            $processedImageUrl = $this->normalizeImageUrl($rawUrl);
+            $processedImageUrl = ImageUrl::normalize($rawUrl);
 
             if ($processedImageUrl !== null) {
                 $imageData = [
@@ -328,46 +328,5 @@ final class SEOService
         }
 
         return $ns[1].'\\'.$cls[1];
-    }
-
-    private function normalizeImageUrl(?string $imagePath): ?string
-    {
-        if (! filled($imagePath)) {
-            return null;
-        }
-
-        /** @var string|null $result */
-        $result = pipeline()
-            ->send($imagePath)
-            ->through([
-                function (string $path, Closure $next): mixed {
-                    $path = mb_trim($path);
-
-                    if (preg_match('/^https?:\/\//i', $path)) {
-                        return $path;
-                    }
-
-                    if (str_starts_with($path, '//')) {
-                        return 'https:'.$path;
-                    }
-
-                    return $next($path);
-                },
-                function (string $path): string {
-                    /** @var string $appUrlConfig */
-                    $appUrlConfig = config('app.url') ?? '';
-                    $appUrl = mb_rtrim($appUrlConfig, '/');
-                    $cleanPath = mb_ltrim($path, '/');
-
-                    if (str_starts_with($cleanPath, 'storage/')) {
-                        return $appUrl.'/'.$cleanPath;
-                    }
-
-                    return $appUrl.'/storage/'.$cleanPath;
-                },
-            ])
-            ->thenReturn();
-
-        return $result;
     }
 }
