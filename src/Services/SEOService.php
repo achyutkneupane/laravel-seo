@@ -33,9 +33,7 @@ final class SEOService
     public function getModelValues(Model $model): array
     {
         /** @var string|null $url */
-        $url = method_exists($model, 'getUrlValue')
-            ? $model->getUrlValue()
-            : (method_exists($model, 'getURLValue') ? $model->getURLValue() : null);
+        $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
         /** @var string|null $imagePath */
         $imagePath = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
         /** @var string|null $title */
@@ -51,7 +49,7 @@ final class SEOService
         /** @var string|null $publisher */
         $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
         /** @var array<int, string|SitemapImage|array<string, mixed>> $sitemapImages */
-        $sitemapImages = method_exists($model, 'getSitemapImagesValue') ? $model->getSitemapImagesValue() : [];
+        $sitemapImages = method_exists($model, 'getSitemapImagesValue') ? $model->getSitemapImagesValue($imagePath) : [];
         /** @var array<int, SitemapVideo|array<string, mixed>> $sitemapVideos */
         $sitemapVideos = method_exists($model, 'getSitemapVideosValue') ? $model->getSitemapVideosValue() : [];
 

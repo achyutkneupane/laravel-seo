@@ -242,13 +242,13 @@ trait HasColumns
         return method_exists($this, 'seoArticleBody') ? $this->seoArticleBody() : null;
     }
 
-    public function getSitemapImagesValue(): array
+    public function getSitemapImagesValue(?string $image = null): array
     {
         if (method_exists($this, 'sitemapImages')) {
             return $this->sitemapImages();
         }
 
-        $image = $this->getImageValue();
+        $image ??= $this->getImageValue();
 
         return $image !== null ? [$image] : [];
     }

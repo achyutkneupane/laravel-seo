@@ -35,7 +35,6 @@ final class SitemapService
 
             [
                 'url' => $url,
-                'imageUrl' => $imageUrl,
                 'title' => $title,
                 'description' => $description,
                 'updatedAt' => $updatedAt,
@@ -56,14 +55,6 @@ final class SitemapService
 
             foreach ($alternates as $alternate) {
                 $xml[] = '<xhtml:link rel="alternate" hreflang="'.$this->escapeXml($alternate['hreflang']).'" href="'.$this->escapeXml($alternate['url']).'"/>';
-            }
-
-            if ($imageUrl && $sitemapImages === []) {
-                $xml[] = '<image:image>';
-                $xml[] = '<image:loc>'.$this->escapeXml($imageUrl).'</image:loc>';
-                $xml[] = '<image:title>'.$this->escapeXml($title ?? '').'</image:title>';
-                $xml[] = '<image:caption>'.$this->escapeXml($description ?? '').'</image:caption>';
-                $xml[] = '</image:image>';
             }
 
             foreach ($sitemapImages as $image) {
