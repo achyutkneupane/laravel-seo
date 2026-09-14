@@ -24,7 +24,7 @@ You are working in a Laravel app using `achyutn/laravel-seo` (a wrapper around `
 - Add `AchyutN\LaravelSEO\Traits\InteractsWithSEO` to any model that should have SEO.
 - Ensure the `seo` table exists. The provided stub uses `morphs('model')` (`model_type`/`model_id`) and the trait relation is `morphOne(..., 'model')` (`database/create_seo_table.php.stub`, `src/Traits/InteractsWithSEO.php`).
 - Backfill existing records with `php artisan seo:generate` (use `--regenerate` to rebuild existing rows) (`src/Commands/GenerateSEO.php`).
-- `seo:generate` discovers models by scanning only `app/Models` in the consuming app (`src/Services/SEOService.php`).
+- `seo:generate` discovers models by scanning the directories configured in `seo.model_paths` (the default is the consuming app's `app/Models`) (`src/Services/SEOService.php`).
 - Customize values using the package's resolution order: `*Value()` method -> `$*Column` property -> default column name (`src/Traits/HasColumns.php`). Prefer `titleValue()`, `descriptionValue()`, `tagsValue()`, `urlValue()`, etc.
 - Schema markup: implement `AchyutN\LaravelSEO\Contracts\HasMarkup` and use one of `BlogSchema`, `PageSchema`, `ProductSchema`. The method signature is `buildSchema(SchemaCollection $schema): SchemaCollection` and schemas resolve SEO internally (`src/Contracts/HasMarkup.php`, `src/Schemas/*`).
 - Breadcrumb markup: override `breadcrumbs(): array` to return `AchyutN\LaravelSEO\Data\Breadcrumb` instances (`src/Data/Breadcrumb.php`, `src/Traits/InteractsWithSEO.php`).
