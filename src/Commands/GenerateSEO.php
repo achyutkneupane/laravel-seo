@@ -51,28 +51,10 @@ final class GenerateSEO extends Command
                             continue;
                         }
 
-                        [
-                            'title' => $title,
-                            'description' => $description,
-                            'tags' => $tags,
-                            'author' => $author,
-                            'publisher' => $publisher,
-                        ] = $this->service->getModelValues($instance);
-
-                        SEO::query()
-                            ->updateOrCreate([
-                                'model_id' => $instance->getKey(),
-                                'model_type' => $instance::class,
-                            ], [
-                                'meta_title' => $title,
-                                'og_title' => $title,
-                                'meta_description' => $description,
-                                'og_description' => $description,
-                                'meta_keywords' => $tags,
-                                'author' => $author,
-                                'publisher' => $publisher,
-                                'robots' => ['index', 'follow'],
-                            ]);
+                        SEO::query()->updateOrCreate([
+                            'model_id' => $instance->getKey(),
+                            'model_type' => $instance::class,
+                        ], $this->service->seoAttributesFor($instance));
                     }
                 });
         }

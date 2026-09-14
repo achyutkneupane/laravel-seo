@@ -39,6 +39,7 @@ final class ResolvedSEO
         public ?string $currency = null,
         public bool $isAvailable = false,
         public ?string $sku = null,
+        public ?string $articleBody = null,
     ) {
         //
     }
@@ -95,7 +96,11 @@ final class ResolvedSEO
         return $this->model;
     }
 
-    /** @return AuthorArray[] */
+    /**
+     * @deprecated Use authorArray() and publisherArray() instead.
+     *
+     * @return AuthorArray[]
+     */
     public function authorAndPublisher(): array
     {
         return array_merge(

@@ -6,8 +6,9 @@ namespace AchyutN\LaravelSEO\Services;
 
 use AchyutN\LaravelSEO\Data\SitemapImage;
 use AchyutN\LaravelSEO\Data\SitemapVideo;
+use AchyutN\LaravelSEO\Support\Alternates;
+use AchyutN\LaravelSEO\Support\ImageUrl;
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
-use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
@@ -26,15 +27,14 @@ final class SEOService
      *     author: string|null,
      *     publisher: string|null,
      *     sitemapImages: array<int, array{loc: string, title: string|null, caption: string|null, geo_location?: string|null, license?: string|null}>,
-     *     sitemapVideos: array<int, array{thumbnail_loc: string, title: string, description: string, player_loc?: string, content_loc?: string, duration?: int, publication_date?: string, expiration_date?: string, rating?: float, view_count?: int, family_friendly?: bool, requires_subscription?: bool, live?: bool}>
+     *     sitemapVideos: array<int, array{thumbnail_loc: string, title: string, description: string, player_loc?: string, content_loc?: string, duration?: int, publication_date?: string, expiration_date?: string, rating?: float, view_count?: int, family_friendly?: bool, requires_subscription?: bool, live?: bool}>,
+     *     alternates: array<int, array{hreflang: string, url: string}>
      * }
      */
     public function getModelValues(Model $model): array
     {
         /** @var string|null $url */
-        $url = method_exists($model, 'getUrlValue')
-            ? $model->getUrlValue()
-            : (method_exists($model, 'getURLValue') ? $model->getURLValue() : null);
+        $url = method_exists($model, 'getUrlValue') ? $model->getUrlValue() : null;
         /** @var string|null $imagePath */
         $imagePath = method_exists($model, 'getImageValue') ? $model->getImageValue() : null;
         /** @var string|null $title */
@@ -50,11 +50,14 @@ final class SEOService
         /** @var string|null $publisher */
         $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
         /** @var array<int, string|SitemapImage|array<string, mixed>> $sitemapImages */
-        $sitemapImages = method_exists($model, 'getSitemapImagesValue') ? $model->getSitemapImagesValue() : [];
+        $sitemapImages = method_exists($model, 'getSitemapImagesValue') ? $model->getSitemapImagesValue($imagePath) : [];
         /** @var array<int, SitemapVideo|array<string, mixed>> $sitemapVideos */
         $sitemapVideos = method_exists($model, 'getSitemapVideosValue') ? $model->getSitemapVideosValue() : [];
 
-        $imageURL = $this->normalizeImageUrl($imagePath);
+        /** @var array<int, array{hreflang: string, url: string}> $alternates */
+        $alternates = method_exists($model, 'seoAlternates') ? Alternates::normalize($model->seoAlternates()) : [];
+
+        $imageURL = ImageUrl::normalize($imagePath);
 
         /** @var array<int, array{loc: string, title: string|null, caption: string|null, geo_location?: string|null, license?: string|null}> $processedSitemapImages */
         $processedSitemapImages = [];
@@ -90,7 +93,7 @@ final class SEOService
                 continue;
             }
 
-            $processedImageUrl = $this->normalizeImageUrl($rawUrl);
+            $processedImageUrl = ImageUrl::normalize($rawUrl);
 
             if ($processedImageUrl !== null) {
                 $imageData = [
@@ -206,47 +209,85 @@ final class SEOService
             'publisher' => $publisher,
             'sitemapImages' => $processedSitemapImages,
             'sitemapVideos' => $processedSitemapVideos,
+            'alternates' => $alternates,
+        ];
+    }
+
+    /**
+     * The attributes written to the SEO row for a model. Shared by the
+     * `created` model hook and the `seo:generate` backfill command.
+     *
+     * @return array<string, mixed>
+     */
+    public function seoAttributesFor(Model $model): array
+    {
+        /** @var string|null $title */
+        $title = method_exists($model, 'getTitleValue') ? $model->getTitleValue() : null;
+        /** @var string|null $description */
+        $description = method_exists($model, 'getDescriptionValue') ? $model->getDescriptionValue() : null;
+        /** @var array<int, string>|null $tags */
+        $tags = method_exists($model, 'getTagsValue') ? $model->getTagsValue() : [];
+        /** @var string|null $author */
+        $author = method_exists($model, 'getAuthorValue') ? $model->getAuthorValue() : null;
+        /** @var string|null $publisher */
+        $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
+
+        return [
+            'meta_title' => $title,
+            'og_title' => $title,
+            'meta_description' => $description,
+            'og_description' => $description,
+            'meta_keywords' => $tags,
+            'author' => $author,
+            'publisher' => $publisher,
+            'robots' => ['index', 'follow'],
         ];
     }
 
     /** @return array<int, class-string<Model>> */
     public function seoModels(): array
     {
-        $path = app_path('Models');
+        $paths = config('seo.model_paths', [app_path('Models')]);
+
+        if (! is_array($paths)) {
+            $paths = [$paths];
+        }
 
         $models = [];
 
-        if (! is_dir($path)) {
-            return $models;
+        foreach ($paths as $path) {
+            if (! is_string($path) || ! is_dir($path)) {
+                continue;
+            }
+
+            foreach (File::allFiles($path) as $file) {
+                $class = $this->classFromFile($file->getPathname());
+                if (! $class) {
+                    continue;
+                }
+                if (! class_exists($class)) {
+                    continue;
+                }
+
+                $reflection = new ReflectionClass($class);
+                if ($reflection->isAbstract()) {
+                    continue;
+                }
+                if (! is_subclass_of($class, Model::class)) {
+                    continue;
+                }
+
+                if (in_array(
+                    InteractsWithSEO::class,
+                    class_uses_recursive($class),
+                    true
+                )) {
+                    $models[] = $class;
+                }
+            }
         }
 
-        foreach (File::allFiles($path) as $file) {
-            $class = $this->classFromFile($file->getPathname());
-            if (! $class) {
-                continue;
-            }
-            if (! class_exists($class)) {
-                continue;
-            }
-
-            $reflection = new ReflectionClass($class);
-            if ($reflection->isAbstract()) {
-                continue;
-            }
-            if (! is_subclass_of($class, Model::class)) {
-                continue;
-            }
-
-            if (in_array(
-                InteractsWithSEO::class,
-                class_uses_recursive($class),
-                true
-            )) {
-                $models[] = $class;
-            }
-        }
-
-        return array_unique($models);
+        return array_values(array_unique($models));
     }
 
     private function classFromFile(string $path): ?string
@@ -265,46 +306,5 @@ final class SEOService
         }
 
         return $ns[1].'\\'.$cls[1];
-    }
-
-    private function normalizeImageUrl(?string $imagePath): ?string
-    {
-        if (! filled($imagePath)) {
-            return null;
-        }
-
-        /** @var string|null $result */
-        $result = pipeline()
-            ->send($imagePath)
-            ->through([
-                function (string $path, Closure $next): mixed {
-                    $path = mb_trim($path);
-
-                    if (preg_match('/^https?:\/\//i', $path)) {
-                        return $path;
-                    }
-
-                    if (str_starts_with($path, '//')) {
-                        return 'https:'.$path;
-                    }
-
-                    return $next($path);
-                },
-                function (string $path): string {
-                    /** @var string $appUrlConfig */
-                    $appUrlConfig = config('app.url') ?? '';
-                    $appUrl = mb_rtrim($appUrlConfig, '/');
-                    $cleanPath = mb_ltrim($path, '/');
-
-                    if (str_starts_with($cleanPath, 'storage/')) {
-                        return $appUrl.'/'.$cleanPath;
-                    }
-
-                    return $appUrl.'/storage/'.$cleanPath;
-                },
-            ])
-            ->thenReturn();
-
-        return $result;
     }
 }

@@ -68,13 +68,13 @@ abstract class TestCase extends BaseTestCase
             $blueprint->morphs('model');
             $blueprint->string('meta_title')->nullable();
             $blueprint->text('meta_description')->nullable();
-            $blueprint->string('meta_keywords')->nullable();
+            $blueprint->json('meta_keywords')->nullable();
             $blueprint->string('og_title')->nullable();
             $blueprint->text('og_description')->nullable();
             $blueprint->string('og_image')->nullable();
             $blueprint->string('og_url')->nullable();
             $blueprint->string('canonical')->nullable();
-            $blueprint->string('robots')->nullable();
+            $blueprint->json('robots')->nullable();
             $blueprint->string('author')->nullable();
             $blueprint->string('publisher')->nullable();
             $blueprint->timestamps();

@@ -45,7 +45,10 @@ trait ProductSchema
                         $resolvedSEO->sku,
                         fn ($collection) => $collection->put('sku', $resolvedSEO->sku)
                     )
-                    ->put('offers', $this->getPriceArray($resolvedSEO))
+                    ->when(
+                        $resolvedSEO->price !== null,
+                        fn ($collection) => $collection->put('offers', $this->getPriceArray($resolvedSEO))
+                    )
             );
     }
 
@@ -56,32 +59,26 @@ trait ProductSchema
 
     private function getPriceArray(ResolvedSEO $resolvedSEO): array
     {
-        $priceSpecifications = collect()
-            ->put('@type', 'UnitPriceSpecification')
-            ->put('priceCurrency', $resolvedSEO->currency)
-            ->put('price', $resolvedSEO->price);
+        $price = $resolvedSEO->hasDiscount() ? $resolvedSEO->discountPrice : $resolvedSEO->price;
 
-        if ($resolvedSEO->hasDiscount() && $resolvedSEO->discountPrice !== null) {
-            $priceSpecifications = collect()
-                ->push($priceSpecifications)
-                ->push(collect()
-                    ->put('@type', 'UnitPriceSpecification')
-                    ->put('priceType', 'https://schema.org/StrikethroughPrice')
-                    ->put('price', $resolvedSEO->discountPrice)
-                    ->put('priceCurrency', $resolvedSEO->currency)
-                );
-        }
+        $priceSpecification = $resolvedSEO->hasDiscount()
+            ? array_filter([
+                '@type' => 'UnitPriceSpecification',
+                'priceType' => 'https://schema.org/StrikethroughPrice',
+                'price' => $resolvedSEO->price,
+                'priceCurrency' => $resolvedSEO->currency,
+            ], static fn (mixed $value): bool => ! in_array($value, [null, ''], true))
+            : null;
 
-        return collect()
-            ->put('@type', 'Offer')
-            ->put(
-                'availability',
-                sprintf(
-                    'https://schema.org/%s',
-                    $resolvedSEO->isAvailable ? 'InStock' : 'OutOfStock'
-                )
-            )
-            ->put('priceSpecification', $priceSpecifications->toArray())
-            ->toArray();
+        return array_filter([
+            '@type' => 'Offer',
+            'price' => $price,
+            'priceCurrency' => $resolvedSEO->currency,
+            'availability' => sprintf(
+                'https://schema.org/%s',
+                $resolvedSEO->isAvailable ? 'InStock' : 'OutOfStock'
+            ),
+            'priceSpecification' => $priceSpecification,
+        ], static fn (mixed $value): bool => ! in_array($value, [null, '', []], true));
     }
 }

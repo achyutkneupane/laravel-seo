@@ -32,7 +32,7 @@ trait PageSchema
                         fn ($collection) => $collection->put('url', $resolvedSEO->url)
                             ->put('@id', $resolvedSEO->url)
                     )
-                    ->put('inLanguage', 'en')
+                    ->put('inLanguage', $this->getLocaleValue() ?? app()->getLocale())
                     ->when(
                         $resolvedSEO->authorArray(),
                         fn ($collection) => $collection->put('author', $resolvedSEO->authorArray())

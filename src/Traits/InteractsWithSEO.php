@@ -8,10 +8,14 @@ use AchyutN\LaravelSEO\Contracts\HasMarkup;
 use AchyutN\LaravelSEO\Data\Breadcrumb;
 use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use AchyutN\LaravelSEO\Models\SEO;
+use AchyutN\LaravelSEO\Services\SEOService;
+use AchyutN\LaravelSEO\Support\Alternates;
+use AchyutN\LaravelSEO\Support\ImageUrl;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use RalphJSmit\Laravel\SEO\Schema\BreadcrumbListSchema;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
+use RalphJSmit\Laravel\SEO\Support\AlternateTag;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
 
 trait InteractsWithSEO
@@ -24,20 +28,10 @@ trait InteractsWithSEO
          * @param  Model|HasColumns  $model
          */
         static::created(function (Model $model): Model {
-            SEO::query()
-                ->updateOrCreate([
-                    'model_id' => $model->getKey(),
-                    'model_type' => $model::class,
-                ], [
-                    'meta_title' => $model->getTitleValue(),
-                    'og_title' => $model->getTitleValue(),
-                    'meta_description' => $model->getDescriptionValue(),
-                    'og_description' => $model->getDescriptionValue(),
-                    'meta_keywords' => $model->getTagsValue(),
-                    'author' => $model->getAuthorValue(),
-                    'publisher' => $model->getPublisherValue(),
-                    'robots' => ['index', 'follow'],
-                ]);
+            SEO::query()->updateOrCreate([
+                'model_id' => $model->getKey(),
+                'model_type' => $model::class,
+            ], app(SEOService::class)->seoAttributesFor($model));
 
             return $model;
         });
@@ -90,37 +84,40 @@ trait InteractsWithSEO
             url: $resolvedSEO->url,
             published_time: $resolvedSEO->publishedAt,
             modified_time: $resolvedSEO->modifiedAt,
+            articleBody: $this->getArticleBodyValue(),
             section: $resolvedSEO->category,
             tags: $resolvedSEO->tags,
             schema: $schema,
-            type: 'article',
+            type: method_exists($this, 'seoType') ? $this->seoType() : 'article',
+            locale: $this->getLocaleValue(),
             robots: $robots,
             openGraphTitle: $seo?->og_title ?? $resolvedSEO->title,
+            alternates: $this->buildAlternates(),
         );
     }
 
     public function resolveSEO(): ResolvedSEO
     {
-        /** @var SEO $seo */
+        /** @var SEO|null $seo */
         $seo = $this->seo;
 
-        $title = $seo->meta_title ?? $this->getTitleValue() ?? '';
-        $description = $seo->meta_description ?? $this->getDescriptionValue();
-        $url = $seo->canonical ?? $this->getUrlValue() ?? null;
+        $title = $seo?->meta_title ?? $this->getTitleValue() ?? '';
+        $description = $this->limitDescription($seo?->meta_description ?? $seo?->og_description ?? $this->getDescriptionValue());
+        $url = $seo?->canonical ?? $seo?->og_url ?? $this->getUrlValue() ?? null;
         $category = $this->getCategoryValue() ?? 'Blog';
-        $tags = $seo->meta_keywords ?? $this->getTagsValue() ?? [];
+        $tags = $seo?->meta_keywords ?? $this->getTagsValue() ?? [];
 
-        $author = $seo->author ?? $this->getAuthorValue();
+        $author = $seo?->author ?? $this->getAuthorValue();
         $authorUrl = $this->getAuthorUrlValue() ?? null;
 
-        $publisher = $seo->publisher ?? $this->getPublisherValue() ?? $this->getAuthorValue();
+        $publisher = $seo?->publisher ?? $this->getPublisherValue() ?? $this->getAuthorValue();
         $publisherUrl = $this->getPublisherUrlValue() ?? $this->getAuthorUrlValue();
 
-        $seoImage = $seo->og_image ?? null;
+        $seoImage = $seo?->og_image ?? null;
         $fallbackImage = $this->getImageValue() ?? null;
         $image = $seoImage ?? $fallbackImage;
 
-        $imageURL = preg_match('/^https?:\/\//', (string) $image) ? (string) $image : ($image ? '/storage/'.$image : null);
+        $imageURL = ImageUrl::normalize($image);
 
         return new ResolvedSEO(
             model: $this,
@@ -143,6 +140,7 @@ trait InteractsWithSEO
             currency: $this->getCurrencyValue(),
             isAvailable: $this->getAvailabilityValue(),
             sku: $this->getSkuValue(),
+            articleBody: $this->getArticleBodyValue(),
         );
     }
 
@@ -150,10 +148,255 @@ trait InteractsWithSEO
     {
         $schema = SchemaCollection::make();
 
+        if ((bool) config('seo.schema.organization.enabled', false)) {
+            $schema->add(fn (): array => $this->organizationSchema());
+        }
+
+        if ((bool) config('seo.schema.website.enabled', false)) {
+            $schema->add(fn (): array => $this->websiteSchema());
+        }
+
+        $faqs = method_exists($this, 'seoFaqs') ? $this->seoFaqs() : [];
+        $faq = $faqs === [] ? null : $this->faqSchema($faqs);
+
+        if ($faq !== null) {
+            $schema->add(fn (): array => $faq);
+        }
+
+        $howTo = method_exists($this, 'seoHowTo') ? $this->seoHowTo() : null;
+        $howToEntity = $howTo === null ? null : $this->howToSchema($howTo);
+
+        if ($howToEntity !== null) {
+            $schema->add(fn (): array => $howToEntity);
+        }
+
+        $speakable = method_exists($this, 'seoSpeakable') ? $this->seoSpeakable() : [];
+        $speakableEntity = $speakable === [] ? null : $this->speakableSchema($speakable);
+
+        if ($speakableEntity !== null) {
+            $schema->add(fn (): array => $speakableEntity);
+        }
+
         if ($this instanceof HasMarkup) {
             return $this->buildSchema($schema);
         }
 
         return $schema;
+    }
+
+    /**
+     * @return array<int, AlternateTag>|null
+     */
+    protected function buildAlternates(): ?array
+    {
+        if (! method_exists($this, 'seoAlternates')) {
+            return null;
+        }
+
+        $alternates = [];
+
+        foreach (Alternates::normalize($this->seoAlternates()) as $alternate) {
+            $alternates[] = new AlternateTag($alternate['hreflang'], $alternate['url']);
+        }
+
+        return $alternates === [] ? null : $alternates;
+    }
+
+    protected function siteUrl(): string
+    {
+        $url = config('seo.schema.organization.url') ?? config('app.url');
+
+        return mb_rtrim((string) $url, '/');
+    }
+
+    protected function limitDescription(?string $description): ?string
+    {
+        $limit = config('seo.description.limit');
+
+        if (! is_int($limit) || $limit <= 0 || $description === null || mb_strlen($description) <= $limit) {
+            return $description;
+        }
+
+        $truncated = mb_substr($description, 0, $limit);
+        $lastSpace = mb_strrpos($truncated, ' ');
+
+        if ($lastSpace !== false && $lastSpace > 0) {
+            $truncated = mb_substr($truncated, 0, $lastSpace);
+        }
+
+        return mb_rtrim($truncated, " \t\n\r\0\x0B.,;:-");
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function organizationSchema(): array
+    {
+        /** @var array<string, mixed> $organization */
+        $organization = config('seo.schema.organization', []);
+
+        /** @var array<int, mixed> $sameAs */
+        $sameAs = is_array($organization['same_as'] ?? null) ? $organization['same_as'] : [];
+        $sameAs = array_values(array_filter($sameAs, filled(...)));
+
+        return array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => $organization['type'] ?? 'Organization',
+            '@id' => $this->siteUrl().'#organization',
+            'name' => $organization['name'] ?? config('seo.site_name') ?? config('app.name'),
+            'url' => $organization['url'] ?? $this->siteUrl(),
+            'logo' => $organization['logo'] ?? null,
+            'sameAs' => $sameAs === [] ? null : $sameAs,
+        ], static fn (mixed $value): bool => ! in_array($value, [null, '', []], true));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function websiteSchema(): array
+    {
+        /** @var array<string, mixed> $website */
+        $website = config('seo.schema.website', []);
+        $searchUrl = $website['search_url'] ?? null;
+
+        return array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            '@id' => $this->siteUrl().'#website',
+            'name' => config('seo.schema.organization.name') ?? config('seo.site_name') ?? config('app.name'),
+            'url' => $this->siteUrl(),
+            'publisher' => ['@id' => $this->siteUrl().'#organization'],
+            'potentialAction' => $searchUrl === null ? null : [
+                '@type' => 'SearchAction',
+                'target' => [
+                    '@type' => 'EntryPoint',
+                    'urlTemplate' => (string) $searchUrl,
+                ],
+                'query-input' => 'required name=search_term_string',
+            ],
+        ], static fn (mixed $value): bool => ! in_array($value, [null, '', []], true));
+    }
+
+    /**
+     * @param  array<int, mixed>  $faqs
+     * @return array<string, mixed>|null
+     */
+    protected function faqSchema(array $faqs): ?array
+    {
+        $questions = [];
+
+        foreach ($faqs as $faq) {
+            if (! is_array($faq)) {
+                continue;
+            }
+
+            $question = (string) ($faq['question'] ?? '');
+            $answer = (string) ($faq['answer'] ?? '');
+
+            if ($question === '' || $answer === '') {
+                continue;
+            }
+
+            $questions[] = [
+                '@type' => 'Question',
+                'name' => $question,
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => $answer,
+                ],
+            ];
+        }
+
+        if ($questions === []) {
+            return null;
+        }
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => $questions,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $howTo
+     * @return array<string, mixed>|null
+     */
+    protected function howToSchema(?array $howTo): ?array
+    {
+        if (! is_array($howTo)) {
+            return null;
+        }
+
+        $name = $howTo['name'] ?? null;
+
+        if (! is_string($name) || $name === '') {
+            return null;
+        }
+
+        $steps = [];
+
+        /** @var array<int, mixed> $rawSteps */
+        $rawSteps = is_array($howTo['steps'] ?? null) ? $howTo['steps'] : [];
+
+        foreach ($rawSteps as $step) {
+            if (! is_array($step)) {
+                continue;
+            }
+
+            $stepName = $step['name'] ?? null;
+            $stepText = $step['text'] ?? null;
+
+            if (! is_string($stepName) || ! is_string($stepText) || $stepName === '' || $stepText === '') {
+                continue;
+            }
+
+            $steps[] = [
+                '@type' => 'HowToStep',
+                'position' => count($steps) + 1,
+                'name' => $stepName,
+                'text' => $stepText,
+            ];
+        }
+
+        if ($steps === []) {
+            return null;
+        }
+
+        $description = $howTo['description'] ?? null;
+
+        return array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'HowTo',
+            'name' => $name,
+            'description' => is_string($description) ? $description : null,
+            'step' => $steps,
+        ], static fn (mixed $value): bool => ! in_array($value, [null, '', []], true));
+    }
+
+    /**
+     * @param  array<int, mixed>  $selectors
+     * @return array<string, mixed>|null
+     */
+    protected function speakableSchema(array $selectors): ?array
+    {
+        $selectors = array_values(array_filter($selectors, is_string(...)));
+
+        if ($selectors === []) {
+            return null;
+        }
+
+        $url = $this->resolveSEO()->url;
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            '@id' => $url,
+            'url' => $url,
+            'speakable' => [
+                '@type' => 'SpeakableSpecification',
+                'cssSelector' => $selectors,
+            ],
+        ];
     }
 }
