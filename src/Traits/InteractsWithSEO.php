@@ -157,21 +157,24 @@ trait InteractsWithSEO
         }
 
         $faqs = method_exists($this, 'seoFaqs') ? $this->seoFaqs() : [];
+        $faq = $faqs === [] ? null : $this->faqSchema($faqs);
 
-        if ($faqs !== []) {
-            $schema->add(fn (): array => $this->faqSchema($faqs));
+        if ($faq !== null) {
+            $schema->add(fn (): array => $faq);
         }
 
         $howTo = method_exists($this, 'seoHowTo') ? $this->seoHowTo() : null;
+        $howToEntity = $howTo === null ? null : $this->howToSchema($howTo);
 
-        if ($howTo !== null) {
-            $schema->add(fn (): array => $this->howToSchema($howTo));
+        if ($howToEntity !== null) {
+            $schema->add(fn (): array => $howToEntity);
         }
 
         $speakable = method_exists($this, 'seoSpeakable') ? $this->seoSpeakable() : [];
+        $speakableEntity = $speakable === [] ? null : $this->speakableSchema($speakable);
 
-        if ($speakable !== []) {
-            $schema->add(fn (): array => $this->speakableSchema($speakable));
+        if ($speakableEntity !== null) {
+            $schema->add(fn (): array => $speakableEntity);
         }
 
         if ($this instanceof HasMarkup) {
@@ -276,9 +279,9 @@ trait InteractsWithSEO
 
     /**
      * @param  array<int, mixed>  $faqs
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      */
-    protected function faqSchema(array $faqs): array
+    protected function faqSchema(array $faqs): ?array
     {
         $questions = [];
 
@@ -304,6 +307,10 @@ trait InteractsWithSEO
             ];
         }
 
+        if ($questions === []) {
+            return null;
+        }
+
         return [
             '@context' => 'https://schema.org',
             '@type' => 'FAQPage',
@@ -313,12 +320,18 @@ trait InteractsWithSEO
 
     /**
      * @param  array<string, mixed>|null  $howTo
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      */
-    protected function howToSchema(?array $howTo): array
+    protected function howToSchema(?array $howTo): ?array
     {
         if (! is_array($howTo)) {
-            return [];
+            return null;
+        }
+
+        $name = $howTo['name'] ?? null;
+
+        if (! is_string($name) || $name === '') {
+            return null;
         }
 
         $steps = [];
@@ -326,35 +339,53 @@ trait InteractsWithSEO
         /** @var array<int, mixed> $rawSteps */
         $rawSteps = is_array($howTo['steps'] ?? null) ? $howTo['steps'] : [];
 
-        foreach ($rawSteps as $index => $step) {
+        foreach ($rawSteps as $step) {
             if (! is_array($step)) {
+                continue;
+            }
+
+            $stepName = $step['name'] ?? null;
+            $stepText = $step['text'] ?? null;
+
+            if (! is_string($stepName) || ! is_string($stepText) || $stepName === '' || $stepText === '') {
                 continue;
             }
 
             $steps[] = [
                 '@type' => 'HowToStep',
-                'position' => $index + 1,
-                'name' => (string) ($step['name'] ?? ''),
-                'text' => (string) ($step['text'] ?? ''),
+                'position' => count($steps) + 1,
+                'name' => $stepName,
+                'text' => $stepText,
             ];
         }
+
+        if ($steps === []) {
+            return null;
+        }
+
+        $description = $howTo['description'] ?? null;
 
         return array_filter([
             '@context' => 'https://schema.org',
             '@type' => 'HowTo',
-            'name' => $howTo['name'] ?? null,
-            'description' => $howTo['description'] ?? null,
-            'step' => $steps === [] ? null : $steps,
+            'name' => $name,
+            'description' => is_string($description) ? $description : null,
+            'step' => $steps,
         ], static fn (mixed $value): bool => ! in_array($value, [null, '', []], true));
     }
 
     /**
      * @param  array<int, mixed>  $selectors
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      */
-    protected function speakableSchema(array $selectors): array
+    protected function speakableSchema(array $selectors): ?array
     {
         $selectors = array_values(array_filter($selectors, is_string(...)));
+
+        if ($selectors === []) {
+            return null;
+        }
+
         $url = $this->resolveSEO()->url;
 
         return [
