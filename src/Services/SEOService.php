@@ -6,6 +6,7 @@ namespace AchyutN\LaravelSEO\Services;
 
 use AchyutN\LaravelSEO\Data\SitemapImage;
 use AchyutN\LaravelSEO\Data\SitemapVideo;
+use AchyutN\LaravelSEO\Support\Alternates;
 use AchyutN\LaravelSEO\Support\ImageUrl;
 use AchyutN\LaravelSEO\Traits\InteractsWithSEO;
 use Illuminate\Database\Eloquent\Model;
@@ -54,28 +55,7 @@ final class SEOService
         $sitemapVideos = method_exists($model, 'getSitemapVideosValue') ? $model->getSitemapVideosValue() : [];
 
         /** @var array<int, array{hreflang: string, url: string}> $alternates */
-        $alternates = [];
-        if (method_exists($model, 'seoAlternates')) {
-            /** @var mixed $rawAlternates */
-            $rawAlternates = $model->seoAlternates();
-
-            if (is_iterable($rawAlternates)) {
-                foreach ($rawAlternates as $alternate) {
-                    if (! is_array($alternate)) {
-                        continue;
-                    }
-
-                    $hreflang = $alternate['hreflang'] ?? null;
-                    $href = $alternate['url'] ?? null;
-
-                    if (! is_string($hreflang) || ! is_string($href)) {
-                        continue;
-                    }
-
-                    $alternates[] = ['hreflang' => $hreflang, 'url' => $href];
-                }
-            }
-        }
+        $alternates = method_exists($model, 'seoAlternates') ? Alternates::normalize($model->seoAlternates()) : [];
 
         $imageURL = ImageUrl::normalize($imagePath);
 

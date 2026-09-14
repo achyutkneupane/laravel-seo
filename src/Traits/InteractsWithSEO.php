@@ -9,6 +9,7 @@ use AchyutN\LaravelSEO\Data\Breadcrumb;
 use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use AchyutN\LaravelSEO\Models\SEO;
 use AchyutN\LaravelSEO\Services\SEOService;
+use AchyutN\LaravelSEO\Support\Alternates;
 use AchyutN\LaravelSEO\Support\ImageUrl;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -191,12 +192,8 @@ trait InteractsWithSEO
 
         $alternates = [];
 
-        foreach ($this->seoAlternates() as $alternate) {
-            if (! is_array($alternate) || ! isset($alternate['hreflang'], $alternate['url'])) {
-                continue;
-            }
-
-            $alternates[] = new AlternateTag((string) $alternate['hreflang'], (string) $alternate['url']);
+        foreach (Alternates::normalize($this->seoAlternates()) as $alternate) {
+            $alternates[] = new AlternateTag($alternate['hreflang'], $alternate['url']);
         }
 
         return $alternates === [] ? null : $alternates;
