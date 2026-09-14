@@ -306,6 +306,7 @@ public function seoHowTo(): array
 {
     return [
         'name' => 'Install the package',
+        'description' => 'Install the package and generate SEO metadata.',
         'steps' => [
             ['name' => 'Require', 'text' => 'Run composer require achyutn/laravel-seo.'],
             ['name' => 'Backfill', 'text' => 'Run php artisan seo:generate.'],
