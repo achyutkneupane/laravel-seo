@@ -89,7 +89,7 @@ trait InteractsWithSEO
             tags: $resolvedSEO->tags,
             schema: $schema,
             type: method_exists($this, 'seoType') ? $this->seoType() : 'article',
-            locale: method_exists($this, 'seoLocale') ? $this->seoLocale() : null,
+            locale: $this->getLocaleValue(),
             robots: $robots,
             openGraphTitle: $seo?->og_title ?? $resolvedSEO->title,
             alternates: $this->buildAlternates(),

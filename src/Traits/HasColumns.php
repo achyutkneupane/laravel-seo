@@ -51,6 +51,7 @@ use Illuminate\Support\Carbon;
  * @method bool availabilityValue()
  * @method string|null skuValue()
  * @method string|null seoArticleBody()
+ * @method string|null seoLocale()
  */
 trait HasColumns
 {
@@ -240,6 +241,11 @@ trait HasColumns
     public function getArticleBodyValue(): ?string
     {
         return method_exists($this, 'seoArticleBody') ? $this->seoArticleBody() : null;
+    }
+
+    public function getLocaleValue(): ?string
+    {
+        return method_exists($this, 'seoLocale') ? $this->seoLocale() : null;
     }
 
     public function getSitemapImagesValue(?string $image = null): array

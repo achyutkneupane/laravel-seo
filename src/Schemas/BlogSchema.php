@@ -30,7 +30,7 @@ trait BlogSchema
                     'image' => $resolvedSEO->image,
                     'articleSection' => $resolvedSEO->category,
                     'keywords' => $resolvedSEO->tags === [] ? null : implode(', ', $resolvedSEO->tags),
-                    'inLanguage' => app()->getLocale(),
+                    'inLanguage' => $this->getLocaleValue() ?? app()->getLocale(),
                     'datePublished' => $resolvedSEO->publishedAt?->toIso8601String(),
                     'dateModified' => $resolvedSEO->modifiedAt?->toIso8601String(),
                     'articleBody' => $resolvedSEO->articleBody,
