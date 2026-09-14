@@ -147,24 +147,30 @@ trait InteractsWithSEO
     {
         $schema = SchemaCollection::make();
 
-        if ((bool) config('seo.schema.organization.enabled', true)) {
+        if ((bool) config('seo.schema.organization.enabled', false)) {
             $schema->add(fn (): array => $this->organizationSchema());
         }
 
-        if ((bool) config('seo.schema.website.enabled', true)) {
+        if ((bool) config('seo.schema.website.enabled', false)) {
             $schema->add(fn (): array => $this->websiteSchema());
         }
 
-        if (method_exists($this, 'seoFaqs') && $this->seoFaqs() !== []) {
-            $schema->add(fn (): array => $this->faqSchema());
+        $faqs = method_exists($this, 'seoFaqs') ? $this->seoFaqs() : [];
+
+        if ($faqs !== []) {
+            $schema->add(fn (): array => $this->faqSchema($faqs));
         }
 
-        if (method_exists($this, 'seoHowTo') && $this->seoHowTo() !== null) {
-            $schema->add(fn (): array => $this->howToSchema());
+        $howTo = method_exists($this, 'seoHowTo') ? $this->seoHowTo() : null;
+
+        if ($howTo !== null) {
+            $schema->add(fn (): array => $this->howToSchema($howTo));
         }
 
-        if (method_exists($this, 'seoSpeakable') && $this->seoSpeakable() !== []) {
-            $schema->add(fn (): array => $this->speakableSchema());
+        $speakable = method_exists($this, 'seoSpeakable') ? $this->seoSpeakable() : [];
+
+        if ($speakable !== []) {
+            $schema->add(fn (): array => $this->speakableSchema($speakable));
         }
 
         if ($this instanceof HasMarkup) {
@@ -272,13 +278,14 @@ trait InteractsWithSEO
     }
 
     /**
+     * @param  array<int, mixed>  $faqs
      * @return array<string, mixed>
      */
-    protected function faqSchema(): array
+    protected function faqSchema(array $faqs): array
     {
         $questions = [];
 
-        foreach ($this->seoFaqs() as $faq) {
+        foreach ($faqs as $faq) {
             if (! is_array($faq)) {
                 continue;
             }
@@ -308,12 +315,11 @@ trait InteractsWithSEO
     }
 
     /**
+     * @param  array<string, mixed>|null  $howTo
      * @return array<string, mixed>
      */
-    protected function howToSchema(): array
+    protected function howToSchema(?array $howTo): array
     {
-        $howTo = $this->seoHowTo();
-
         if (! is_array($howTo)) {
             return [];
         }
@@ -346,11 +352,12 @@ trait InteractsWithSEO
     }
 
     /**
+     * @param  array<int, mixed>  $selectors
      * @return array<string, mixed>
      */
-    protected function speakableSchema(): array
+    protected function speakableSchema(array $selectors): array
     {
-        $selectors = array_values(array_filter($this->seoSpeakable(), is_string(...)));
+        $selectors = array_values(array_filter($selectors, is_string(...)));
         $url = $this->resolveSEO()->url;
 
         return [
