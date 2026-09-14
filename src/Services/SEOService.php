@@ -235,6 +235,37 @@ final class SEOService
         ];
     }
 
+    /**
+     * The attributes written to the SEO row for a model. Shared by the
+     * `created` model hook and the `seo:generate` backfill command.
+     *
+     * @return array<string, mixed>
+     */
+    public function seoAttributesFor(Model $model): array
+    {
+        /** @var string|null $title */
+        $title = method_exists($model, 'getTitleValue') ? $model->getTitleValue() : null;
+        /** @var string|null $description */
+        $description = method_exists($model, 'getDescriptionValue') ? $model->getDescriptionValue() : null;
+        /** @var array<int, string>|null $tags */
+        $tags = method_exists($model, 'getTagsValue') ? $model->getTagsValue() : [];
+        /** @var string|null $author */
+        $author = method_exists($model, 'getAuthorValue') ? $model->getAuthorValue() : null;
+        /** @var string|null $publisher */
+        $publisher = method_exists($model, 'getPublisherValue') ? $model->getPublisherValue() : null;
+
+        return [
+            'meta_title' => $title,
+            'og_title' => $title,
+            'meta_description' => $description,
+            'og_description' => $description,
+            'meta_keywords' => $tags,
+            'author' => $author,
+            'publisher' => $publisher,
+            'robots' => ['index', 'follow'],
+        ];
+    }
+
     /** @return array<int, class-string<Model>> */
     public function seoModels(): array
     {

@@ -8,6 +8,7 @@ use AchyutN\LaravelSEO\Contracts\HasMarkup;
 use AchyutN\LaravelSEO\Data\Breadcrumb;
 use AchyutN\LaravelSEO\Data\ResolvedSEO;
 use AchyutN\LaravelSEO\Models\SEO;
+use AchyutN\LaravelSEO\Services\SEOService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use RalphJSmit\Laravel\SEO\Schema\BreadcrumbListSchema;
@@ -25,20 +26,10 @@ trait InteractsWithSEO
          * @param  Model|HasColumns  $model
          */
         static::created(function (Model $model): Model {
-            SEO::query()
-                ->updateOrCreate([
-                    'model_id' => $model->getKey(),
-                    'model_type' => $model::class,
-                ], [
-                    'meta_title' => $model->getTitleValue(),
-                    'og_title' => $model->getTitleValue(),
-                    'meta_description' => $model->getDescriptionValue(),
-                    'og_description' => $model->getDescriptionValue(),
-                    'meta_keywords' => $model->getTagsValue(),
-                    'author' => $model->getAuthorValue(),
-                    'publisher' => $model->getPublisherValue(),
-                    'robots' => ['index', 'follow'],
-                ]);
+            SEO::query()->updateOrCreate([
+                'model_id' => $model->getKey(),
+                'model_type' => $model::class,
+            ], app(SEOService::class)->seoAttributesFor($model));
 
             return $model;
         });
