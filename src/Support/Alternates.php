@@ -31,8 +31,8 @@ final class Alternates
                 continue;
             }
 
-            $hreflang = trim($hreflang);
-            $url = trim($url);
+            $hreflang = mb_trim($hreflang);
+            $url = mb_trim($url);
 
             if ($hreflang === '' || $url === '') {
                 continue;
